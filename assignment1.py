@@ -4,6 +4,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from utils import get_t
 
 # %%
 """ VECTORIZE CODE"""
@@ -15,16 +16,7 @@ x0 = 0  # initial position
 v0 = 1  # initial velocity
 
 t_max = 100
-dt = 2
-
-
-def get_t(t_max, dt):
-    t_array = np.arange(0, t_max, dt)
-    n = len(t_array)
-    return t_array, n
-
-
-t_array, n = get_t(t_max, dt)
+dt = 0.001
 
 
 # Euler method (vectorized)
@@ -41,13 +33,14 @@ def euler_method(x0, v0, m, k, t_max, dt):
     a[0] = -k * x[0] / m
     e[0] = 0.5 * k * x[0] ** 2 + 0.5 * m * v[0] ** 2
 
-    for i in range(1, n):
-        # a uses the PREVIOUS value of x
-        a[i] = -k * x[i - 1] / m
+    for i in range(0, n - 1):
         # update x with previous x and previous v
-        x[i] = x[i - 1] + dt * v[i - 1]
+        x[i + 1] = x[i] + dt * v[i]
         # update v with previous v and update a
-        v[i] = v[i - 1] + dt * a[i]
+        v[i + 1] = v[i] + dt * a[i]
+        # a uses the current value of x
+        a[i + 1] = -k * x[i + 1] / m
+
         # update e with all the current values
         e[i] = 0.5 * k * x[i] ** 2 + 0.5 * m * v[i] ** 2
 
@@ -71,10 +64,11 @@ def verlet_method(x0, v0, m, k, t_max, dt):
     # Calculate x[1] using Euler method for the first step
     x[1] = x[0] + v[0] * dt
 
-    # from second elem up till the second last elem. Note that at position i, we calculate x[i+1] and [i] for everything else!
-    # so we start with the second position, where we calculate x[3]
+    # start from first elem
+    # we always calculate the next elem stuff
+    # so we go up till the second time step
     for i in range(1, n - 1):
-        # use the current value of x[i] which is populated one time step earlier!
+        # use the CURRENT value of x[i] which is populated one time step earlier!
         a[i] = -k * x[i] / m
         x[i + 1] = 2 * x[i] - x[i - 1] + a[i] * dt**2
         v[i] = (x[i + 1] - x[i - 1]) / (2 * dt)
@@ -112,8 +106,11 @@ x_analytic, v_analytic, a_analytic, e_analytic = analytical_solution(
     x0, v0, m, k, t_max, dt
 )
 
+t_array, n = get_t(t_max, dt)
+
 # Plotting
 plt.figure(figsize=(12, 8))
+
 plt.subplot(3, 1, 1)
 plt.title("Euler Method")
 plt.plot(t_array, x_euler, label="x (m)")
@@ -192,7 +189,7 @@ def analyze_verlet_stability(t_max, dt_values):
 
 
 t_max = 1000
-dt_values = list(np.logspace(-4, -1, 50))
+dt_values = list(np.logspace(-4, 2, 50))
 dt_values, mse_values = analyze_verlet_stability(t_max, dt_values)
 
 print(f"Minimum dt tested: {min(dt_values):.6f}")
