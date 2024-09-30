@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from utils import get_t
+import time
 
 # %%
 """ VECTORIZE CODE"""
@@ -16,7 +17,7 @@ x0 = 0  # initial position
 v0 = 1  # initial velocity
 
 t_max = 100
-dt = 0.001
+dt = 0.0001
 
 
 # Euler method (vectorized)
@@ -100,11 +101,24 @@ def analytical_solution(x0, v0, m, k, t_max, dt):
 
 
 # Run simulations
+# Measure execution time
+start_time = time.time()
 x_euler, v_euler, a_euler, e_euler = euler_method(x0, v0, m, k, t_max, dt)
+euler_time = time.time() - start_time
+
+start_time = time.time()
 x_verlet, v_verlet, a_verlet, e_verlet = verlet_method(x0, v0, m, k, t_max, dt)
+verlet_time = time.time() - start_time
+
+start_time = time.time()
 x_analytic, v_analytic, a_analytic, e_analytic = analytical_solution(
     x0, v0, m, k, t_max, dt
 )
+analytical_time = time.time() - start_time
+
+print(f"Euler method execution time: {euler_time:.4f} seconds")
+print(f"Verlet method execution time: {verlet_time:.4f} seconds")
+print(f"Analytical method execution time: {analytical_time:.4f} seconds")
 
 t_array, n = get_t(t_max, dt)
 

@@ -2,7 +2,8 @@ CC = g++
 CCSW = -O3 -Wno-deprecated-declarations
 PLATFORM = `uname`
 
-all:	lander spring
+#all:	lander spring
+all:	lander
 
 lander: lander.o lander_graphics.o
 	@if [ ${PLATFORM} = "Linux" ]; \
@@ -17,10 +18,11 @@ lander: lander.o lander_graphics.o
 
 lander_graphics.o lander.o: lander.h
 
-spring: spring.o
+# spring: spring.o
 
 .cpp.o:
 	$(CC) ${CCSW} -c $<
 
 clean:
-	echo cleaning up; /bin/rm -f core *.o lander spring
+# echo cleaning up; /bin/rm -f core *.o lander spring
+	echo cleaning up; /bin/rm -f core *.o lander
