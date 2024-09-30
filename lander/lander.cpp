@@ -13,18 +13,97 @@
 // ahg@eng.cam.ac.uk and gc121@eng.cam.ac.uk.
 
 #include "lander.h"
+// this is for using the value of pi as constant M_PI
+#include <cmath>
 
-void autopilot(void)
-// Autopilot to adjust the engine throttle, parachute and attitude control
+vector3d get_acceleration(void)
 {
-  // INSERT YOUR CODE HERE
+  // declare the types of all our variables used
+  vector3d a_total, f_gravity, f_thrust, lander_drag, chute_drag;
+  double mass;
+
+  // get current mass
+  mass = UNLOADED_LANDER_MASS + FUEL_DENSITY * FUEL_CAPACITY * fuel;
+
+  // first get the acceleration due only to gravity, get the unit vector of position, then divide by the norm squared
+  f_gravity = -(GRAVITY * MARS_MASS * mass) * position.norm() / position.abs2();
+
+  f_thrust = thrust_wrt_world();
+
+  // multiply by the relevant constants to the velocity unit vector, lander area has a circular base
+  lander_drag = -0.5 * atmospheric_density(position) * DRAG_COEF_LANDER * (M_PI * pow(LANDER_SIZE, 2)) * velocity.abs2() * velocity.norm();
+
+  // if parachute deployed, get that drag too
+  if (parachute_status == DEPLOYED)
+  {
+    // the parachute area trumps the lander area, 5 sqaures each of length 2* lander size
+    chute_drag = -0.5 * atmospheric_density(position) * DRAG_COEF_LANDER * (5.0 * 2.0 * LANDER_SIZE * 2.0 * LANDER_SIZE) * velocity.abs2() * velocity.norm();
+  }
+  else
+  {
+    chute_drag = vector3d(0, 0, 0);
+  }
+
+  // get current total acceleration
+  a_total = (f_gravity + f_thrust + lander_drag + chute_drag) / mass;
+  return a_total;
+}
+
+void euler_method()
+// run simulation using euler method
+{
+  // note that position and velocity are global variables!
+  vector3d acceleration;
+
+  // // first value of position must use euler as 2 values of position needed for verlet
+  if (simulation_time == 0)
+  {
+    // update acceleration
+    acceleration = get_acceleration();
+    // use a variable to store previous position
+    position = position + delta_t * velocity;
+    velocity = velocity + delta_t * acceleration;
+  }
+}
+
+void verlet_method()
+// run the simulation using verlet method
+{
+  // note that position and velocity are global variables!
+  vector3d acceleration, position_next;
+
+  // we use a static variable for previous position so when calling the function again, we can simply get the previous value
+  static vector3d position_prev;
+
+  // // first value of position must use euler as 2 values of position needed for verlet
+  if (simulation_time == 0)
+  {
+    // first step,we step forward once, initialize the position and position_prev, using euler method
+    acceleration = get_acceleration();
+    position_prev = position;
+    position = position + velocity * delta_t;
+  }
+  else
+  {
+    // update acceleration
+    acceleration = get_acceleration();
+    // use a variable to store previous position
+    position_next = position * 2 - position_prev + acceleration * delta_t * delta_t;
+    velocity = (position_next - position_prev) * 0.5 / delta_t;
+
+    // x_prev <- x, move one step forward
+    position_prev = position;
+    // x <- x_next, move one step forward
+    position = position_next;
+  }
 }
 
 void numerical_dynamics(void)
 // This is the function that performs the numerical integration to update the
 // lander's pose. The time step is delta_t (global variable).
 {
-  // INSERT YOUR CODE HERE
+  // change this for the mode
+  verlet_method();
 
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled)
@@ -68,18 +147,18 @@ void initialize_simulation(void)
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = false;
-    autopilot_enabled = false;
+    autopilot_enabled = true;
     break;
 
   case 1:
     // a descent from rest at 10km altitude
     position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
     velocity = vector3d(0.0, 0.0, 0.0);
-    orientation = vector3d(0.0, 0.0, 90.0);
+    orientation = vector3d(0.0, 0.0, 910.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = true;
-    autopilot_enabled = false;
+    autopilot_enabled = true;
     break;
 
   case 2:
@@ -90,7 +169,7 @@ void initialize_simulation(void)
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = false;
-    autopilot_enabled = false;
+    autopilot_enabled = true;
     break;
 
   case 3:
@@ -100,8 +179,8 @@ void initialize_simulation(void)
     orientation = vector3d(0.0, 0.0, 0.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = false;
-    autopilot_enabled = false;
+    stabilized_attitude = true;
+    autopilot_enabled = true;
     break;
 
   case 4:
@@ -112,7 +191,7 @@ void initialize_simulation(void)
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = false;
-    autopilot_enabled = false;
+    autopilot_enabled = true;
     break;
 
   case 5:
@@ -122,8 +201,8 @@ void initialize_simulation(void)
     orientation = vector3d(0.0, 0.0, 90.0);
     delta_t = 0.1;
     parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = true;
-    autopilot_enabled = false;
+    stabilized_attitude = false;
+    autopilot_enabled = true;
     break;
 
   case 6:

@@ -1,28 +1,21 @@
 CC = g++
 CCSW = -O3 -Wno-deprecated-declarations
-PLATFORM = `uname`
 
-#all:	lander spring
-all:	lander
+# Set the source directory
+SRC_DIR = lander
 
-lander: lander.o lander_graphics.o
-	@if [ ${PLATFORM} = "Linux" ]; \
-	then $(CC) -o lander lander.o lander_graphics.o ${CCSW} -lGL -lGLU -lglut; \
-	echo Linking for Linux; \
-	elif [ ${PLATFORM} = "Darwin" ]; \
-	then $(CC) -o lander lander.o lander_graphics.o ${CCSW} -framework GLUT -framework OpenGL; \
-	echo Linking for Mac OS X; \
-	else $(CC) -o lander lander.o lander_graphics.o ${CCSW} -lglut32 -lglu32 -lopengl32; \
-	echo Linking for Cygwin; \
-	fi
+# Define the object files
+OBJS = $(SRC_DIR)/lander.o $(SRC_DIR)/lander_graphics.o $(SRC_DIR)/autopilot.o
 
-lander_graphics.o lander.o: lander.h
+all: lander
 
-# spring: spring.o
+lander: $(OBJS)
+	$(CC) -o $@ $^ ${CCSW} -lGL -lGLU -lglut
+	@echo Linking for Linux
 
-.cpp.o:
-	$(CC) ${CCSW} -c $<
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp $(SRC_DIR)/lander.h
+	$(CC) ${CCSW} -c $< -o $@
 
 clean:
-# echo cleaning up; /bin/rm -f core *.o lander spring
-	echo cleaning up; /bin/rm -f core *.o lander
+	@echo cleaning up
+	@rm -f $(SRC_DIR)/*.o lander
