@@ -92,7 +92,7 @@ bool crashed = false;
 int last_click_x = -1;
 int last_click_y = -1;
 short simulation_speed = 5;
-// this delta_t be careful
+// this delta_t be carefu;l
 double delta_t, simulation_time;
 unsigned short scenario = 0;
 string scenario_description[10];

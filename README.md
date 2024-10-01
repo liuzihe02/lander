@@ -20,6 +20,7 @@ Refactoring of global variables. All variables are declared as `extern` in lande
 - I know this is bad practice, but I have no choice as I need to modularise the code
 - Ideally we would use singleton classes here or OOP to encapsulate classes
     - I don't think its a good idea to have so many global variables, but theres nothing I can do about it.
+    - This is causing me alot of headaches.
 
 
 - added a `render` variable that allows me to run simulations without GLUT

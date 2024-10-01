@@ -8,7 +8,7 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = false;
+bool render = true;
 
 int main(int argc, char *argv[])
 // Initializes GLUT windows and lander state, then enters GLUT main loop
@@ -131,23 +131,24 @@ void run_one_episode()
     // Initialize the simulation
     reset_simulation();
 
-    // put in your scenario variables here
-    //  a descent from rest at 10km altitude
-    // note that these work only when render is false and will be overidden when the scenarios are played
-    vector3d position = vector3d(0.0, (MARS_RADIUS + EXOSPHERE), 0.0);
-    vector3d velocity = vector3d(0.0, 0.0, 0.0);
-    vector3d orientation = vector3d(0.0, 0.0, 0.0);
-    double delta_t = 0.1;
-    parachute_status_t parachute_status = NOT_DEPLOYED;
-    bool stabilized_attitude = false;
-    bool autopilot_enabled = true;
+    // Set initial conditions
+    // BE CAREFUL OF THIS GLOBAL VARIABLE POSITION
+    // a descent from rest at 10km altitude
+    position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
+    velocity = vector3d(0.0, 0.0, 0.0);
+    orientation = vector3d(0.0, 0.0, 910.0);
+    delta_t = 0.1;
+    parachute_status = NOT_DEPLOYED;
+    stabilized_attitude = true;
+    autopilot_enabled = true;
 
-    // Main simulation loop, which models the update_lander_state function
-    // while (!landed)
-    for (int i = 0; i < 500; i++)
+    // Main simulation loop
+    while (!landed && !crashed)
     {
-
         update_lander_state();
+
+        // Update altitude
+        altitude = position.abs() - MARS_RADIUS;
 
         // Optional: Print current state or other relevant information
         std::cout << "Time: " << simulation_time
@@ -168,6 +169,6 @@ void run_one_episode()
     // Print final stats
     std::cout << "Final altitude: " << altitude << std::endl;
     std::cout << "Ground speed at landing: " << ground_speed << std::endl;
-    std::cout << "Descent rate at landing: " << climb_speed << std::endl;
+    std::cout << "Descent rate at landing: " << -climb_speed << std::endl;
     std::cout << "Remaining fuel: " << fuel * FUEL_CAPACITY << " litres" << std::endl;
-};
+}
