@@ -8,8 +8,8 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = true;
-bool agent_flag = false;
+bool render = false;
+bool agent_flag = true;
 
 // actually declare it here
 Agent agent;
@@ -142,7 +142,38 @@ void run_one_episode()
         // Main simulation loop
         while (!landed && !crashed)
         {
+            // acess global variable
+            vector<double> states = agent.getState();
+            // at this point, we have position and velocity
+            // have just gotten an action
+            // Optional: Print current state or other relevant information
+            std::cout << " PRESTEP - Time: " << states[0]
+                      // state
+                      << " Rx: " << states[1] << " Global Pos X: " << position.x
+                      << " Ry: " << states[2] << " Global Pos Y: " << position.y
+                      << " Vx: " << states[4] << " Global V X: " << velocity.x
+                      << " Vy: " << states[5] << " Global V Y: " << position.x
+
+                      << " Fuel Used: " << (1.0 - states[10]) * FUEL_CAPACITY
+                      << " Altitude: " << states[11] << " Global Altitude: " << altitude
+                      // action made
+                      << " Throttle Action: " << throttle
+                      << endl;
             agent.step();
+
+            states = agent.getState();
+            std::cout << " POSTSTEP - Time: " << states[0]
+                      // state
+                      << " Rx: " << states[1] << " Global Pos X: " << position.x
+                      << " Ry: " << states[2] << " Global Pos Y: " << position.y
+                      << " Vx: " << states[4] << " Global V X: " << velocity.x
+                      << " Vy: " << states[5] << " Global V Y: " << position.x
+
+                      << " Fuel Used: " << (1.0 - states[10]) * FUEL_CAPACITY
+                      << " Altitude: " << states[11] << " Global Altitude: " << altitude
+                      // action made
+                      << " Throttle Action: " << throttle
+                      << endl;
         }
 
         // Simulation ended

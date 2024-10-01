@@ -23,21 +23,19 @@ void Agent::reset()
     ::parachute_status = NOT_DEPLOYED;
     ::stabilized_attitude = true;
     ::autopilot_enabled = true;
-
-    // sync to private vars
-    syncFromGlobals();
 }
 
-std::vector<double> Agent::getState() const
+std::vector<double> Agent::getState()
 {
-    // no syncing needed here, should be already synced
-    return {
-        simulation_time,
-        position.x, position.y, position.z,
-        velocity.x, velocity.y, velocity.z,
-        orientation.x, orientation.y, orientation.z,
-        fuel,
-        altitude};
+    // Create a NEW vector and populate it with copies of the global variables
+    std::vector<double> state = {
+        ::simulation_time,
+        ::position.x, ::position.y, ::position.z,
+        ::velocity.x, ::velocity.y, ::velocity.z,
+        ::orientation.x, ::orientation.y, ::orientation.z,
+        ::fuel,
+        ::altitude};
+    return state; // This returns a COPY that can be modified without affecting the originals
 }
 
 void Agent::step()
@@ -47,9 +45,8 @@ void Agent::step()
     // syncFromGlobals();
 
     // global env has changed
+    // this will call autopilot with the agent
     update_lander_state();
-
-    syncFromGlobals();
 }
 
 bool Agent::isDone() const
@@ -66,28 +63,28 @@ double Agent::getReward() const
     return -1.0; // Small negative reward for each step
 }
 
-void Agent::syncToGlobals()
-{
-    // Copy our private state to the global variables
-    ::simulation_time = this->simulation_time;
-    ::position = this->position;
-    ::velocity = this->velocity;
-    ::orientation = this->orientation;
-    ::fuel = this->fuel;
-    ::landed = this->landed;
-    ::crashed = this->crashed;
-    ::altitude = this->altitude;
-}
+// void Agent::syncToGlobals()
+// {
+//     // Copy our private state to the global variables
+//     ::simulation_time = this->simulation_time;
+//     ::position = this->position;
+//     ::velocity = this->velocity;
+//     ::orientation = this->orientation;
+//     ::fuel = this->fuel;
+//     ::landed = this->landed;
+//     ::crashed = this->crashed;
+//     ::altitude = this->altitude;
+// }
 
-void Agent::syncFromGlobals()
-{
-    // Copy global variables to our private state
-    this->simulation_time = ::simulation_time;
-    this->position = ::position;
-    this->velocity = ::velocity;
-    this->orientation = ::orientation;
-    this->fuel = ::fuel;
-    this->landed = ::landed;
-    this->crashed = ::crashed;
-    this->altitude = ::altitude;
-}
+// void Agent::syncFromGlobals()
+// {
+//     // Copy global variables to our private state
+//     this->simulation_time = ::simulation_time;
+//     this->position = ::position;
+//     this->velocity = ::velocity;
+//     this->orientation = ::orientation;
+//     this->fuel = ::fuel;
+//     this->landed = ::landed;
+//     this->crashed = ::crashed;
+//     this->altitude = ::altitude;
+// }

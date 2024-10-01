@@ -216,6 +216,7 @@ vector3d thrust_wrt_world(void)
         a.y = 0.0;
         a.z = lagged_throttle * MAX_THRUST;
         // this updates m
+        // so is orientation is used in calculating thrust direction!
         xyz_euler_to_matrix(orientation, m);
         b.x = m[0] * a.x + m[4] * a.y + m[8] * a.z;
         b.y = m[1] * a.x + m[5] * a.y + m[9] * a.z;

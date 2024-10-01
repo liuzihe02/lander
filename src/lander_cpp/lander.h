@@ -217,7 +217,7 @@ class Agent
 public:
   Agent();
   void reset();
-  std::vector<double> getState() const;
+  std::vector<double> getState();
   void step();
   bool isDone() const;
   double getReward() const;

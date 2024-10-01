@@ -103,10 +103,12 @@ void numerical_dynamics(void)
 // This is the function that performs the numerical integration to update the
 // lander's pose. The time step is delta_t (global variable).
 {
-  // change this for the mode
+  // FIRST UPDATE POSITION WITH CURRENT THROTTLE
+  //  change this for the mode
   verlet_method();
 
-  // Here we can apply an autopilot to adjust the thrust, parachute and attitude
+  // THEN UPDATE THROTTLE FOR THE NEXT STEP
+  //  Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled)
     autopilot();
 
