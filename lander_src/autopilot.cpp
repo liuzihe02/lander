@@ -48,4 +48,20 @@ void autopilot(void)
     {
         throttle = 1;
     }
+
+    // at this point, we have position and velocity
+    // have just gotten an action
+    // Optional: Print current state or other relevant information
+    std::cout << " Time: " << simulation_time
+              // state
+              << " Vx: " << velocity.x
+              << " Vy: " << velocity.y
+              << " Vz: " << velocity.z
+              << " Rx: " << position.x
+              << " Ry: " << position.y
+              << " Rz: " << position.z
+              << " Altitude: " << altitude
+              << " Fuel Used: " << (1.0 - fuel) * FUEL_CAPACITY
+              // action made
+              << " Throttle Action: " << throttle << endl;
 }

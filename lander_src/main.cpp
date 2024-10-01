@@ -8,7 +8,7 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = true;
+bool render = false;
 
 int main(int argc, char *argv[])
 // Initializes GLUT windows and lander state, then enters GLUT main loop
@@ -134,10 +134,14 @@ void run_one_episode()
     // Set initial conditions
     // BE CAREFUL OF THIS GLOBAL VARIABLE POSITION
     // a descent from rest at 10km altitude
+    // a descent from rest at the edge of the exosphere
+    // an elliptical polar orbit
+    // polar surface launch at escape velocity (but drag prevents escape)
+    // a descent from rest at 10km altitude
     position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
     velocity = vector3d(0.0, 0.0, 0.0);
     orientation = vector3d(0.0, 0.0, 910.0);
-    delta_t = 0.1;
+    delta_t = 1;
     parachute_status = NOT_DEPLOYED;
     stabilized_attitude = true;
     autopilot_enabled = true;
@@ -149,11 +153,6 @@ void run_one_episode()
 
         // Update altitude
         altitude = position.abs() - MARS_RADIUS;
-
-        // Optional: Print current state or other relevant information
-        std::cout << "Time: " << simulation_time
-                  << " Altitude: " << altitude
-                  << " Fuel: " << fuel << std::endl;
     }
 
     // Simulation ended
@@ -167,8 +166,9 @@ void run_one_episode()
     }
 
     // Print final stats
+    std::cout << "Crashed status " << crashed << std::endl;
     std::cout << "Final altitude: " << altitude << std::endl;
     std::cout << "Ground speed at landing: " << ground_speed << std::endl;
     std::cout << "Descent rate at landing: " << -climb_speed << std::endl;
-    std::cout << "Remaining fuel: " << fuel * FUEL_CAPACITY << " litres" << std::endl;
+    std::cout << "Remaining fuel " << fuel * FUEL_CAPACITY << " litres" << std::endl;
 }
