@@ -22,6 +22,8 @@ Refactoring of global variables. All variables are declared as `extern` in lande
     - I don't think its a good idea to have so many global variables, but theres nothing I can do about it.
     - This is causing me alot of headaches.
 
+- In C++, make sure to install pybind11 too.
+
 
 - added a `render` variable that allows me to run simulations without GLUT
     - The functions starting with `mech` are rewritten by me to allow to run without GLUT

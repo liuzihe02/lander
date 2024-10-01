@@ -9,10 +9,6 @@
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
 bool render = false;
-bool agent_flag = true;
-
-// actually declare it here
-Agent agent;
 
 int main(int argc, char *argv[])
 // Initializes GLUT windows and lander state, then enters GLUT main loop
@@ -26,7 +22,6 @@ int main(int argc, char *argv[])
     // DONT USE GLUT RENDERING
     else
     {
-
         run_one_episode();
         return 0;
     }
@@ -38,7 +33,6 @@ void run_graphics(int argc, char *argv[])
         int i;
 
         // Main GLUT window
-        std::cout << "init here" << endl;
         glutInit(&argc, argv);
         glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
         glutInitWindowPosition(0, 0);
@@ -134,38 +128,44 @@ void run_graphics(int argc, char *argv[])
 
 void run_one_episode()
 {
-    if (agent_flag)
+    // Initialize the simulation
+    reset_simulation();
+
+    // Set initial conditions
+    // BE CAREFUL OF THIS GLOBAL VARIABLE POSITION
+    // a descent from rest at 10km altitude
+    // a descent from rest at the edge of the exosphere
+    // an elliptical polar orbit
+    // polar surface launch at escape velocity (but drag prevents escape)
+    // a descent from rest at 10km altitude
+    position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
+    velocity = vector3d(0.0, 0.0, 0.0);
+    orientation = vector3d(0.0, 0.0, 910.0);
+    delta_t = 1;
+    parachute_status = NOT_DEPLOYED;
+    stabilized_attitude = true;
+    autopilot_enabled = true;
+
+    // Main simulation loop
+    while (!landed && !crashed)
     {
-
-        agent.reset();
-
-        // Main simulation loop
-        while (!landed && !crashed)
-        {
-            agent.step();
-        }
-
-        // Simulation ended
-        if (crashed)
-        {
-            std::cout << "Lander crashed!" << std::endl;
-        }
-        else
-        {
-            std::cout << "Lander landed safely!" << std::endl;
-        }
-
-        // Print final stats
-        std::cout << "Crashed status " << crashed << std::endl;
-        std::cout << "Final altitude: " << altitude << std::endl;
-        std::cout << "Ground speed at landing: " << ground_speed << std::endl;
-        std::cout << "Descent rate at landing: " << -climb_speed << std::endl;
-        std::cout << "Remaining fuel " << fuel * FUEL_CAPACITY << " litres" << std::endl;
+        update_lander_state();
     }
 
-    // choose not to render, but no agent
+    // Simulation ended
+    if (crashed)
+    {
+        std::cout << "Lander crashed!" << std::endl;
+    }
     else
     {
-        std::cout << "youve chosen not to render, without an agent. Not implemented yet!" << std::endl;
+        std::cout << "Lander landed safely!" << std::endl;
     }
+
+    // Print final stats
+    std::cout << "Crashed status " << crashed << std::endl;
+    std::cout << "Final altitude: " << altitude << std::endl;
+    std::cout << "Ground speed at landing: " << ground_speed << std::endl;
+    std::cout << "Descent rate at landing: " << -climb_speed << std::endl;
+    std::cout << "Remaining fuel " << fuel * FUEL_CAPACITY << " litres" << std::endl;
 }

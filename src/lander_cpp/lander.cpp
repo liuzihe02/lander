@@ -98,6 +98,7 @@ void verlet_method()
   }
 }
 
+// numerical dynamics now takes in an agent
 void numerical_dynamics(void)
 // This is the function that performs the numerical integration to update the
 // lander's pose. The time step is delta_t (global variable).

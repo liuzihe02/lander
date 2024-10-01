@@ -2082,7 +2082,9 @@ void glut_special(int key, int x, int y)
     if (paused)
     {
       if (!landed)
+      {
         glutIdleFunc(update_lander_state);
+      }
       paused = false;
     }
     break;

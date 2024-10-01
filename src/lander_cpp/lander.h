@@ -31,6 +31,8 @@
 #include <cmath>
 #include <cstdlib>
 
+#include <vector>
+
 // GLUT mouse wheel operations work under Linux only
 #if !defined(GLUT_WHEEL_UP)
 #define GLUT_WHEEL_UP 3
@@ -203,7 +205,41 @@ enum parachute_status_t
   LOST = 2
 };
 
-// Declare all global variables here
+/**
+ * Our Agent class. this will be wrapped in Python.
+ *
+ *
+ *
+ */
+
+class Agent
+{
+public:
+  Agent();
+  void reset();
+  std::vector<double> getState() const;
+  void step();
+  bool isDone() const;
+  double getReward() const;
+
+private:
+  void syncToGlobals();
+  void syncFromGlobals();
+
+  // Private copies of global variables
+  // these are all shadowed
+  double simulation_time;
+  vector3d position;
+  vector3d velocity;
+  vector3d orientation;
+  double fuel;
+  bool landed;
+  bool crashed;
+  double altitude;
+};
+
+// DECLARE ALL GLOBAL VARIABLES HERE
+// WHY ARE THEY SO MANY OH GOD
 // make everything external! declaration will be handled within the files themselves
 extern int main_window, closeup_window, orbital_window, instrument_window, view_width, view_height, win_width, win_height;
 extern GLUquadricObj *quadObj;
@@ -229,6 +265,10 @@ extern unsigned long long time_program_started;
 
 // this decides whether we choose to use the graphics simulation or not
 extern bool render;
+// whether or not to use RL agent or default
+extern bool agent_flag;
+// need to actually access agent class
+extern Agent agent;
 
 // Lander state
 extern vector3d position, orientation, velocity, velocity_from_positions, last_position;
@@ -288,11 +328,14 @@ bool safe_to_deploy_parachute(void);
 void update_visualization(void);
 void attitude_stabilization(void);
 vector3d thrust_wrt_world(void);
-void autopilot(void);
 void numerical_dynamics(void);
 void initialize_simulation(void);
 void update_lander_state(void);
 void reset_simulation(void);
+// autopilot stuff
+void autopilot(void);
+void autopilot_control(void);
+void autopilot_agent(void);
 
 // more rendering
 void set_orbital_projection_matrix(void);

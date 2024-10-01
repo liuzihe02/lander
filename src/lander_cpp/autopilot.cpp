@@ -18,6 +18,18 @@ double calculate_error()
 void autopilot(void)
 // Autopilot to adjust the engine throttle, parachute and attitude control
 {
+    if (!agent_flag)
+    {
+        autopilot_control();
+    }
+    else
+    {
+        autopilot_agent();
+    }
+}
+
+void autopilot_control(void)
+{
     // Calculate (pure) controller output
     double error, P_out;
     error = calculate_error();
@@ -48,20 +60,27 @@ void autopilot(void)
     {
         throttle = 1;
     }
+}
 
+void autopilot_agent(void)
+{
+    throttle = 1.0;
+    // acess global variable
+    vector<double> states = agent.getState();
     // at this point, we have position and velocity
     // have just gotten an action
     // Optional: Print current state or other relevant information
-    std::cout << " Time: " << simulation_time
+    std::cout << " Time: " << states[0]
               // state
-              << " Vx: " << velocity.x
-              << " Vy: " << velocity.y
-              << " Vz: " << velocity.z
-              << " Rx: " << position.x
-              << " Ry: " << position.y
-              << " Rz: " << position.z
-              << " Altitude: " << altitude
-              << " Fuel Used: " << (1.0 - fuel) * FUEL_CAPACITY
+              << " Rx: " << states[1]
+              << " Ry: " << states[2]
+              << " Rz: " << states[3]
+              << " Vx: " << states[4]
+              << " Vy: " << states[5]
+              << " Vz: " << states[6]
+
+              << " Fuel Used: " << (1.0 - states[10]) * FUEL_CAPACITY
+              << " Altitude: " << states[11]
               // action made
               << " Throttle Action: " << throttle
               << endl;

@@ -48,7 +48,9 @@ void update_visualization(void)
     {
         // RENDERING HERE
         if (render)
+        {
             glutIdleFunc(NULL);
+        }
 
         // Estimate position and time of impact
         d = position - last_position;
@@ -276,7 +278,10 @@ void reset_simulation(void)
     altitude = position.abs() - MARS_RADIUS;
     if (altitude < LANDER_SIZE / 2.0)
     {
-        glutIdleFunc(NULL);
+        if (render)
+        {
+            glutIdleFunc(NULL);
+        }
         landed = true;
         velocity = vector3d(0.0, 0.0, 0.0);
     }
@@ -321,6 +326,8 @@ void reset_simulation(void)
         if (paused || landed)
             refresh_all_subwindows();
         else
+        {
             glutIdleFunc(update_lander_state);
+        }
     }
 }
