@@ -221,15 +221,15 @@ public:
   virtual ~Agent() = default; // Add a virtual destructor
   // reset and step very similar to gym env
   virtual vector<double> reset();
-  virtual tuple<vector<double>, double, bool> step(tuple<double> actions);
+  virtual void update(tuple<double> actions);
   // this is public so numerical dynamics can use this
   virtual tuple<double> getActions();
   virtual std::vector<double> getState();
+  virtual bool isDone() const;
+  virtual double getReward() const;
 
 private:
   virtual bool setActions(tuple<double> actions);
-  virtual bool isDone() const;
-  virtual double getReward() const;
 
   // private variable
   tuple<double> actions;

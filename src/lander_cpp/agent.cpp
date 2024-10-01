@@ -32,7 +32,8 @@ vector<double> Agent::reset()
     return initial_state;
 }
 
-tuple<vector<double>, double, bool> Agent::step(tuple<double> actions)
+// given the action, move the environment. does not return state for us!
+void Agent::update(tuple<double> actions)
 // given the environment, take an action
 // very similar to Python Gym Env step
 {
@@ -43,17 +44,6 @@ tuple<vector<double>, double, bool> Agent::step(tuple<double> actions)
     // global env has changed
     // this will call autopilot with the agent
     update_lander_state();
-
-    // Get the new state
-    vector<double> new_state = this->getState();
-
-    // Calculate the reward
-    double reward = this->getReward();
-
-    // Check if the episode is done
-    bool done = this->isDone();
-
-    return std::make_tuple(new_state, reward, done);
 }
 
 vector<double> Agent::getState()
@@ -75,20 +65,6 @@ tuple<double> Agent::getActions()
     return this->actions;
 }
 
-/**
- * the below are PRIVATE methods!
- *
- *
- *
- */
-
-bool Agent::setActions(tuple<double> new_actions)
-{
-    // this actions will be available globally! is an instance variable
-    actions = new_actions;
-    return true;
-}
-
 bool Agent::isDone() const
 {
     // return the global ones, instead of the local variables
@@ -103,6 +79,20 @@ double Agent::getReward() const
         return -100.0;
     // this controls the descent time
     return -1.0; // Small negative reward for each step
+}
+
+/**
+ * the below are PRIVATE methods!
+ *
+ *
+ *
+ */
+
+bool Agent::setActions(tuple<double> new_actions)
+{
+    // this actions will be available globally! is an instance variable
+    actions = new_actions;
+    return true;
 }
 
 // void Agent::syncToGlobals()

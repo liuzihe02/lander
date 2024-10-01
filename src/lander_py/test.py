@@ -18,12 +18,10 @@ agent = lander_agent_cpp.Agent()
 agent.reset()
 
 # Run a few steps
-while not agent.is_done():
+for i in range(10):
     state = agent.get_state()
     print(f"State: {state}")
 
-    agent.step()
+    res = agent.step()
 
-    if agent.is_done():
-        print(f"Episode finished! Final reward: {agent.get_reward()}")
-        break
+    print("sad", res)

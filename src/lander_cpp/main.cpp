@@ -8,7 +8,7 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = false;
+bool render = true;
 bool agent_flag = true;
 
 // actually declare it here
@@ -161,7 +161,7 @@ void run_one_episode()
                       << endl;
 
             // step with an arbitrary action
-            agent.step(std::make_tuple(1.0));
+            agent.update(std::make_tuple(1.0));
 
             states = agent.getState();
             std::cout << " POSTSTEP - Time: " << states[0]
