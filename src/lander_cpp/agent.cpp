@@ -1,5 +1,6 @@
 
 #include <vector>
+#include <tuple>
 // Implementation (Agent.cpp)
 #include "lander.h"
 
@@ -9,7 +10,8 @@ Agent::Agent()
     // make sure you dont call reset here else you run into problems
 }
 
-void Agent::reset()
+vector<double> Agent::reset()
+// returns the observations after resetting
 {
     reset_simulation();
     // Set initial conditions
@@ -19,13 +21,42 @@ void Agent::reset()
     ::position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
     ::velocity = vector3d(0.0, 0.0, 0.0);
     ::orientation = vector3d(0.0, 0.0, 910.0);
-    ::delta_t = 3;
+    ::delta_t = 1;
     ::parachute_status = NOT_DEPLOYED;
     ::stabilized_attitude = true;
     ::autopilot_enabled = true;
+
+    // Convert the initial state to double and return it
+    vector<double> initial_state = this->getState();
+
+    return initial_state;
 }
 
-std::vector<double> Agent::getState()
+tuple<vector<double>, double, bool> Agent::step(tuple<double> actions)
+// given the environment, take an action
+// very similar to Python Gym Env step
+{
+
+    // set the actions globally
+    this->setActions(actions);
+
+    // global env has changed
+    // this will call autopilot with the agent
+    update_lander_state();
+
+    // Get the new state
+    vector<double> new_state = this->getState();
+
+    // Calculate the reward
+    double reward = this->getReward();
+
+    // Check if the episode is done
+    bool done = this->isDone();
+
+    return std::make_tuple(new_state, reward, done);
+}
+
+vector<double> Agent::getState()
 {
     // Create a NEW vector and populate it with copies of the global variables
     std::vector<double> state = {
@@ -38,15 +69,24 @@ std::vector<double> Agent::getState()
     return state; // This returns a COPY that can be modified without affecting the originals
 }
 
-void Agent::step()
-// given the environment, take an action
+tuple<double> Agent::getActions()
 {
-    // I think no syncing  needed here
-    // syncFromGlobals();
+    // copy will automatically be made
+    return this->actions;
+}
 
-    // global env has changed
-    // this will call autopilot with the agent
-    update_lander_state();
+/**
+ * the below are PRIVATE methods!
+ *
+ *
+ *
+ */
+
+bool Agent::setActions(tuple<double> new_actions)
+{
+    // this actions will be available globally! is an instance variable
+    actions = new_actions;
+    return true;
 }
 
 bool Agent::isDone() const

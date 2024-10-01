@@ -64,25 +64,8 @@ void autopilot_control(void)
 
 void autopilot_agent(void)
 {
-    throttle += 0.02;
-    // acess global variable
-    vector<double> states = agent.getState();
-    // at this point, we have position and velocity
-    // have just gotten an action
-    // Optional: Print current state or other relevant information
-    std::cout << "RIGHT AFTER THROTTLE ADJUSTS"
-              << " Time: " << states[0]
-              // state
-              << " Rx: " << states[1]
-              << " Ry: " << states[2]
-              << " Rz: " << states[3]
-              << " Vx: " << states[4]
-              << " Vy: " << states[5]
-              << " Vz: " << states[6]
-
-              << " Fuel Used: " << (1.0 - states[10]) * FUEL_CAPACITY
-              << " Altitude: " << states[11]
-              // action made
-              << " Throttle Action: " << throttle
-              << endl;
+    // get the first element of a tuple
+    double throttle_action = std::get<0>(agent.getActions());
+    // update global throttle
+    throttle = throttle_action;
 }

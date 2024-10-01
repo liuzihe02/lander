@@ -159,7 +159,9 @@ void run_one_episode()
                       // action made
                       << " Throttle Action: " << throttle
                       << endl;
-            agent.step();
+
+            // step with an arbitrary action
+            agent.step(std::make_tuple(1.0));
 
             states = agent.getState();
             std::cout << " POSTSTEP - Time: " << states[0]

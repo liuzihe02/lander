@@ -32,6 +32,7 @@
 #include <cstdlib>
 
 #include <vector>
+#include <tuple>
 
 // GLUT mouse wheel operations work under Linux only
 #if !defined(GLUT_WHEEL_UP)
@@ -218,11 +219,20 @@ public:
   Agent();
   // the virtual declarations here allow overriding of functions, from inherited classes!
   virtual ~Agent() = default; // Add a virtual destructor
-  virtual void reset();
+  // reset and step very similar to gym env
+  virtual vector<double> reset();
+  virtual tuple<vector<double>, double, bool> step(tuple<double> actions);
+  // this is public so numerical dynamics can use this
+  virtual tuple<double> getActions();
   virtual std::vector<double> getState();
-  virtual void step();
+
+private:
+  virtual bool setActions(tuple<double> actions);
   virtual bool isDone() const;
   virtual double getReward() const;
+
+  // private variable
+  tuple<double> actions;
 
   // private:
   //   void syncToGlobals();

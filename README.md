@@ -22,8 +22,6 @@ Refactoring of global variables. All variables are declared as `extern` in lande
     - I don't think its a good idea to have so many global variables, but theres nothing I can do about it.
     - This is causing me alot of headaches.
 
-- In C++, make sure to install pybind11 too.
-
 
 - added a `render` variable that allows me to run simulations without GLUT
     - The functions starting with `mech` are rewritten by me to allow to run without GLUT
@@ -43,6 +41,11 @@ Refactoring of global variables. All variables are declared as `extern` in lande
 3. Run CMake: `cmake ..`
 4. Build the project: `make`
 
-`pybind`
+### `pybind`
 Note that you need to install `pybind` in linux to wrap your C++ classes around Python wrappers. Then, you can call C++ classes from Python as if you were running them in C++. This is needed as the codebase is in C++, but we want to do training in Python.
 - Due to our functions in C++ being all global currently, this complicates things
+
+### Running Files
+
+- After building, we can run `./lander` from `build` folder, to run `main.cpp`
+- To use the modules in `lander_agent_cpp.so`, to import from this file like a regular Python files containing classes
