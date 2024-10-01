@@ -5,7 +5,7 @@ CCSW = -O3 -Wno-deprecated-declarations
 SRC_DIR = lander_src
 
 # Define the object files
-OBJS = $(SRC_DIR)/lander.o $(SRC_DIR)/lander_graphics.o $(SRC_DIR)/autopilot.o $(SRC_DIR)/main.o
+OBJS = $(SRC_DIR)/lander.o $(SRC_DIR)/lander_graphics.o $(SRC_DIR)/lander_mechanics.o $(SRC_DIR)/autopilot.o $(SRC_DIR)/main.o
 
 all: lander
 
