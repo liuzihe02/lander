@@ -51,15 +51,17 @@ void Agent::step()
 
 bool Agent::isDone() const
 {
-    return landed || crashed;
+    // return the global ones, instead of the local variables
+    return ::landed || ::crashed;
 }
 
 double Agent::getReward() const
 {
-    if (landed && !crashed)
+    if (::landed && !::crashed)
         return 100.0;
-    if (crashed)
+    if (::crashed)
         return -100.0;
+    // this controls the descent time
     return -1.0; // Small negative reward for each step
 }
 

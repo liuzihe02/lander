@@ -216,26 +216,28 @@ class Agent
 {
 public:
   Agent();
-  void reset();
-  std::vector<double> getState();
-  void step();
-  bool isDone() const;
-  double getReward() const;
+  // the virtual declarations here allow overriding of functions, from inherited classes!
+  virtual ~Agent() = default; // Add a virtual destructor
+  virtual void reset();
+  virtual std::vector<double> getState();
+  virtual void step();
+  virtual bool isDone() const;
+  virtual double getReward() const;
 
-private:
-  void syncToGlobals();
-  void syncFromGlobals();
+  // private:
+  //   void syncToGlobals();
+  //   void syncFromGlobals();
 
-  // Private copies of global variables
-  // these are all shadowed
-  double simulation_time;
-  vector3d position;
-  vector3d velocity;
-  vector3d orientation;
-  double fuel;
-  bool landed;
-  bool crashed;
-  double altitude;
+  //   // Private copies of global variables
+  //   // these are all shadowed
+  //   double simulation_time;
+  //   vector3d position;
+  //   vector3d velocity;
+  //   vector3d orientation;
+  //   double fuel;
+  //   bool landed;
+  //   bool crashed;
+  //   double altitude;
 };
 
 // DECLARE ALL GLOBAL VARIABLES HERE

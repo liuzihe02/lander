@@ -20,6 +20,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+# ignore cmake stuff
 build/
 develop-eggs/
 dist/

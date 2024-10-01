@@ -33,3 +33,16 @@ Refactoring of global variables. All variables are declared as `extern` in lande
 - `autopilot.cpp`
 - `main.cpp`
     - 
+
+## Extra Requirements
+
+### `cmake`
+
+1. Place `CMakeLists.txt` in the root directory of your project
+2. Create a build directory in the root: `mkdir build && cd build`
+3. Run CMake: `cmake ..`
+4. Build the project: `make`
+
+`pybind`
+Note that you need to install `pybind` in linux to wrap your C++ classes around Python wrappers. Then, you can call C++ classes from Python as if you were running them in C++. This is needed as the codebase is in C++, but we want to do training in Python.
+- Due to our functions in C++ being all global currently, this complicates things
