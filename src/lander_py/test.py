@@ -10,18 +10,21 @@ sys.path.append(os.getcwd())
 # Now we can import the module
 import build.lander_agent_cpp as lander_agent_cpp
 
-
+print("check")
 # Create an instance of the Agent
 agent = lander_agent_cpp.Agent()
+print("check2")
 
 # Reset the environment
 agent.reset()
 
 # Run a few steps
-for i in range(10):
+while not agent.is_done():
     state = agent.get_state()
     print(f"State: {state}")
 
-    res = agent.step()
+    agent.update((0.1,))
 
-    print("sad", res)
+    if agent.is_done():
+        print(f"Episode finished! Final reward: {agent.get_reward()}")
+        break

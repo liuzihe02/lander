@@ -228,7 +228,6 @@ public:
   virtual bool isDone() const;
   virtual double getReward() const;
 
-private:
   virtual bool setActions(tuple<double> actions);
 
   // private variable

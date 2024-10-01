@@ -8,7 +8,7 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = true;
+bool render = false;
 bool agent_flag = true;
 
 // actually declare it here
@@ -19,6 +19,11 @@ int main(int argc, char *argv[])
 {
     if (render)
     {
+        if (agent_flag)
+        {
+            cout << "issues with global variables, in setAction" << endl;
+            return 1;
+        }
         // TODO: the referencing & here MAY CAUSE ISSUES
         run_graphics(argc, argv);
         return 0;
@@ -141,6 +146,7 @@ void run_one_episode()
 
         // Main simulation loop
         while (!landed && !crashed)
+        // for (int i = 0; i < 10; i++)
         {
             // acess global variable
             vector<double> states = agent.getState();

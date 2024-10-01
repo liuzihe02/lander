@@ -21,7 +21,7 @@ vector<double> Agent::reset()
     ::position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
     ::velocity = vector3d(0.0, 0.0, 0.0);
     ::orientation = vector3d(0.0, 0.0, 910.0);
-    ::delta_t = 1;
+    ::delta_t = 0.1;
     ::parachute_status = NOT_DEPLOYED;
     ::stabilized_attitude = true;
     ::autopilot_enabled = true;
