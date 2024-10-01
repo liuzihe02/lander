@@ -63,5 +63,6 @@ void autopilot(void)
               << " Altitude: " << altitude
               << " Fuel Used: " << (1.0 - fuel) * FUEL_CAPACITY
               // action made
-              << " Throttle Action: " << throttle << endl;
+              << " Throttle Action: " << throttle
+              << endl;
 }

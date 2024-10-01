@@ -3,12 +3,7 @@
 
 /**
  *
- * CORE FUNCTIONALITY
- *
- *
- *
- *
- *
+ * CORE FUNCTIONALITY. For the stuff involving OpenGL, I've added a flag to use GLUT
  *
  *
  */
@@ -254,7 +249,7 @@ void update_lander_state(void)
     // Update historical record
     last_position = position;
 
-    // Mechanical dynamics
+    // Mechanical dynamics, update the position and velocity
     numerical_dynamics();
 
     // Refresh the visualization

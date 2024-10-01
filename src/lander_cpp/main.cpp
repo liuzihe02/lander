@@ -8,7 +8,7 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = false;
+bool render = true;
 
 int main(int argc, char *argv[])
 // Initializes GLUT windows and lander state, then enters GLUT main loop
@@ -150,9 +150,6 @@ void run_one_episode()
     while (!landed && !crashed)
     {
         update_lander_state();
-
-        // Update altitude
-        altitude = position.abs() - MARS_RADIUS;
     }
 
     // Simulation ended
