@@ -75,8 +75,51 @@
 // OpenGL(TM) is a trademark of Silicon Graphics, Inc.
 
 // include this in the lander.h
-#define DECLARE_GLOBAL_VARIABLES
 #include "lander.h"
+// GL windows and objects
+int main_window, closeup_window, orbital_window, instrument_window, view_width, view_height, win_width, win_height;
+GLUquadricObj *quadObj;
+GLuint terrain_texture;
+short throttle_control;
+track_t track;
+bool texture_available;
+
+// Simulation parameters
+bool help = false;
+bool paused = false;
+bool landed = false;
+bool crashed = false;
+int last_click_x = -1;
+int last_click_y = -1;
+short simulation_speed = 5;
+double simulation_time;
+unsigned short scenario = 0;
+string scenario_description[10];
+bool static_lighting = false;
+closeup_coords_t closeup_coords;
+float randtab[N_RAND];
+bool do_texture = true;
+unsigned long throttle_buffer_length, throttle_buffer_pointer;
+double *throttle_buffer = NULL; // this is an array
+unsigned long long time_program_started;
+
+// Lander state - the visualization routines use velocity_from_positions, so not sensitive to
+// any errors in the velocity update in numerical_dynamics
+vector3d velocity_from_positions, last_position;
+double climb_speed, ground_speed, altitude, throttle, fuel;
+bool parachute_lost;
+int stabilized_attitude_angle;
+
+// Orbital and closeup view parameters
+double orbital_zoom, save_orbital_zoom, closeup_offset, closeup_xr, closeup_yr, terrain_angle;
+quat_t orbital_quat;
+
+// For GL lights
+GLfloat plus_y[] = {0.0, 1.0, 0.0, 0.0};
+GLfloat minus_y[] = {0.0, -1.0, 0.0, 0.0};
+GLfloat plus_z[] = {0.0, 0.0, 1.0, 0.0};
+GLfloat top_right[] = {1.0, 1.0, 1.0, 0.0};
+GLfloat straight_on[] = {0.0, 0.0, 1.0, 0.0};
 
 /**
  *
@@ -2696,159 +2739,5 @@ void mech_reset_simulation(void)
     for (i = 0; i < throttle_buffer_length; i++)
       throttle_buffer[i] = throttle;
     throttle_buffer_pointer = 0;
-  }
-}
-
-/**
- * MAIN FUNCTION
- *
- *
- */
-
-int main(int argc, char *argv[])
-// Initializes GLUT windows and lander state, then enters GLUT main loop
-{
-  if (render)
-  {
-    int i;
-
-    // Main GLUT window
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-    glutInitWindowPosition(0, 0);
-    glutInitWindowSize(PREFERRED_WIDTH, PREFERRED_HEIGHT);
-    view_width = (PREFERRED_WIDTH - 4 * GAP) / 2;
-    view_height = (PREFERRED_HEIGHT - INSTRUMENT_HEIGHT - 4 * GAP);
-    main_window = glutCreateWindow("Mars Lander (Gabor Csanyi and Andrew Gee, August 2019)");
-    glDrawBuffer(GL_BACK);
-    glLineWidth(2.0);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_DEPTH_TEST);
-    glutDisplayFunc(draw_main_window);
-    glutReshapeFunc(reshape_main_window);
-    glutIdleFunc(update_lander_state);
-    glutKeyboardFunc(glut_key);
-    glutSpecialFunc(glut_special);
-
-    // The close-up view subwindow
-    closeup_window = glutCreateSubWindow(main_window, GAP, GAP, view_width, view_height);
-    glDrawBuffer(GL_BACK);
-    setup_lights();
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_CULL_FACE); // we only need back faces for the parachute
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_NORMALIZE);
-    glDepthFunc(GL_LEQUAL);
-    glShadeModel(GL_SMOOTH);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE); // we need two-sided lighting for the parachute
-    glEnable(GL_COLOR_MATERIAL);
-    glFogi(GL_FOG_MODE, GL_EXP);
-    glutDisplayFunc(draw_closeup_window);
-    glutMouseFunc(closeup_mouse_button);
-    glutMotionFunc(closeup_mouse_motion);
-    glutKeyboardFunc(glut_key);
-    glutSpecialFunc(glut_special);
-    texture_available = generate_terrain_texture();
-    if (!texture_available)
-      do_texture = false;
-    closeup_offset = 50.0;
-    closeup_xr = 10.0;
-    closeup_yr = 0.0;
-    terrain_angle = 0.0;
-
-    // The orbital view subwindow
-    orbital_window = glutCreateSubWindow(main_window, view_width + 3 * GAP, GAP, view_width, view_height);
-    glDrawBuffer(GL_BACK);
-    setup_lights();
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LIGHTING);
-    glEnable(GL_CULL_FACE); // since the only polygons in this view define a solid sphere
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_NORMALIZE);
-    glDepthFunc(GL_LEQUAL);
-    glShadeModel(GL_SMOOTH);
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-    glutDisplayFunc(draw_orbital_window);
-    glutMouseFunc(orbital_mouse_button);
-    glutMotionFunc(orbital_mouse_motion);
-    glutKeyboardFunc(glut_key);
-    glutSpecialFunc(glut_special);
-    quadObj = gluNewQuadric();
-    orbital_quat.v.x = 0.53;
-    orbital_quat.v.y = -0.21;
-    orbital_quat.v.z = 0.047;
-    orbital_quat.s = 0.82;
-    normalize_quat(orbital_quat);
-    save_orbital_zoom = 1.0;
-    orbital_zoom = 1.0;
-
-    // The instrument subwindow
-    instrument_window = glutCreateSubWindow(main_window, GAP, view_height + 3 * GAP, 2 * (view_width + GAP), INSTRUMENT_HEIGHT);
-    glutDisplayFunc(draw_instrument_window);
-    glutKeyboardFunc(glut_key);
-    glutSpecialFunc(glut_special);
-
-    // Generate the random number table
-    srand(0);
-    for (i = 0; i < N_RAND; i++)
-      randtab[i] = (float)rand() / RAND_MAX;
-
-    // Initialize the simulation state
-    reset_simulation();
-    microsecond_time(time_program_started);
-
-    glutMainLoop();
-  }
-
-  // DONT USE GLUT RENDERING
-  else
-  {
-    // Initialize the simulation
-    mech_reset_simulation();
-
-    // put in your scenario variables here
-    //  a descent from rest at 10km altitude
-    position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
-    velocity = vector3d(0.0, 0.0, 0.0);
-    orientation = vector3d(0.0, 0.0, 90.0);
-    delta_t = 0.1;
-    parachute_status = NOT_DEPLOYED;
-    stabilized_attitude = true;
-    autopilot_enabled = true;
-
-    // Main simulation loop, which models the update_lander_state function
-    while (!landed)
-    {
-
-      mech_update_lander_state();
-
-      // Optional: Print current state or other relevant information
-      std::cout << "Time: " << simulation_time
-                << " Altitude: " << altitude
-                << " Fuel: " << fuel << std::endl;
-    }
-
-    // Simulation ended
-    if (crashed)
-    {
-      std::cout << "Lander crashed!" << std::endl;
-    }
-    else
-    {
-      std::cout << "Lander landed safely!" << std::endl;
-    }
-
-    // Print final stats
-    std::cout << "Final altitude: " << altitude << std::endl;
-    std::cout << "Ground speed at landing: " << ground_speed << std::endl;
-    std::cout << "Descent rate at landing: " << -climb_speed << std::endl;
-    std::cout << "Remaining fuel: " << fuel * FUEL_CAPACITY << " litres" << std::endl;
-
-    return 0;
   }
 }

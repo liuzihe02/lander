@@ -16,6 +16,17 @@ Note that currently, the make files only compiles lander projects.
 
 ## Main Changes
 
-- lander.cpp
-- autopilot.cpp
-- added a render variable that allows me to run simulations without GLUT
+Refactoring of global variables. All variables are declared as `extern` in lander.h, and declared at the start of the file when they are first used.
+- I know this is bad practice, but I have no choice as I need to modularise the code
+- Ideally we would use singleton classes here or OOP to encapsulate classes
+    - I don't think its a good idea to have so many global variables, but theres nothing I can do about it.
+
+
+- added a `render` variable that allows me to run simulations without GLUT
+    - The functions starting with `mech` are rewritten by me to allow to run without GLUT
+
+- `lander.cpp`
+    - changes like in assignment
+- `autopilot.cpp`
+- `main.cpp`
+    - 

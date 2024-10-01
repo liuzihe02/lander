@@ -203,69 +203,46 @@ enum parachute_status_t
   LOST = 2
 };
 
-#ifdef DECLARE_GLOBAL_VARIABLES // actual declarations of all global variables for lander_graphics.cpp
-
-// GL windows and objects
-int main_window, closeup_window, orbital_window, instrument_window, view_width, view_height, win_width, win_height;
-GLUquadricObj *quadObj;
-GLuint terrain_texture;
-short throttle_control;
-track_t track;
-bool texture_available;
+// Declare all global variables here
+// make everything external! declaration will be handled within the files themselves
+extern int main_window, closeup_window, orbital_window, instrument_window, view_width, view_height, win_width, win_height;
+extern GLUquadricObj *quadObj;
+extern GLuint terrain_texture;
+extern short throttle_control;
+extern track_t track;
+extern bool texture_available;
 
 // Simulation parameters
-bool help = false;
-bool paused = false;
-bool landed = false;
-bool crashed = false;
-int last_click_x = -1;
-int last_click_y = -1;
-short simulation_speed = 5;
-double delta_t, simulation_time;
-unsigned short scenario = 0;
-string scenario_description[10];
-bool static_lighting = false;
-closeup_coords_t closeup_coords;
-float randtab[N_RAND];
-bool do_texture = true;
-unsigned long throttle_buffer_length, throttle_buffer_pointer;
-double *throttle_buffer = NULL; // this is an array
-unsigned long long time_program_started;
-
-// IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = true;
-
-// Lander state - the visualization routines use velocity_from_positions, so not sensitive to
-// any errors in the velocity update in numerical_dynamics
-vector3d position, orientation, velocity, velocity_from_positions, last_position;
-double climb_speed, ground_speed, altitude, throttle, fuel;
-bool stabilized_attitude, autopilot_enabled, parachute_lost;
-parachute_status_t parachute_status;
-int stabilized_attitude_angle;
-
-// Orbital and closeup view parameters
-double orbital_zoom, save_orbital_zoom, closeup_offset, closeup_xr, closeup_yr, terrain_angle;
-quat_t orbital_quat;
-
-// For GL lights
-GLfloat plus_y[] = {0.0, 1.0, 0.0, 0.0};
-GLfloat minus_y[] = {0.0, -1.0, 0.0, 0.0};
-GLfloat plus_z[] = {0.0, 0.0, 1.0, 0.0};
-GLfloat top_right[] = {1.0, 1.0, 1.0, 0.0};
-GLfloat straight_on[] = {0.0, 0.0, 1.0, 0.0};
-
-#else // extern declarations of those global variables used everywhere except main
-
-// any source file that includes this will be able to use these variables
-extern bool stabilized_attitude, autopilot_enabled;
-extern double delta_t, simulation_time, throttle, fuel;
+extern bool help, paused, landed, crashed;
+extern int last_click_x, last_click_y;
+extern short simulation_speed;
+extern double delta_t, simulation_time;
 extern unsigned short scenario;
-extern string scenario_description[];
-extern vector3d position, orientation, velocity;
+extern std::string scenario_description[10];
+extern bool static_lighting;
+extern closeup_coords_t closeup_coords;
+extern float randtab[N_RAND];
+extern bool do_texture;
+extern unsigned long throttle_buffer_length, throttle_buffer_pointer;
+extern double *throttle_buffer;
+extern unsigned long long time_program_started;
+
+// this decides whether we choose to use the graphics simulation or not
+extern bool render;
+
+// Lander state
+extern vector3d position, orientation, velocity, velocity_from_positions, last_position;
+extern double climb_speed, ground_speed, altitude, throttle, fuel;
+extern bool stabilized_attitude, autopilot_enabled, parachute_lost;
 extern parachute_status_t parachute_status;
 extern int stabilized_attitude_angle;
 
-#endif
+// Orbital and closeup view parameters
+extern double orbital_zoom, save_orbital_zoom, closeup_offset, closeup_xr, closeup_yr, terrain_angle;
+extern quat_t orbital_quat;
+
+// For GL lights
+extern GLfloat plus_y[], minus_y[], plus_z[], top_right[], straight_on[];
 
 // Function prototypes
 
@@ -337,3 +314,7 @@ vector3d get_acceleration(void);
 void mech_update(void);
 void mech_update_lander_state(void);
 void mech_reset_simulation(void);
+
+// these are the main functions in main.cpp
+void run_graphics(int argc, char *argv[]);
+void run_one_episode();
