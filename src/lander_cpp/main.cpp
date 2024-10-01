@@ -8,8 +8,8 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = false;
-bool agent_flag = true;
+bool render = true;
+bool agent_flag = false;
 
 // actually declare it here
 Agent agent;
