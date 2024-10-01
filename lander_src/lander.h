@@ -311,9 +311,9 @@ vector3d get_acceleration(void);
 // these modules are in lander_mechanics.cpp
 // custom functions to run simulations without glut
 // remember to set render to false for this
-void mech_update(void);
-void mech_update_lander_state(void);
-void mech_reset_simulation(void);
+// void mech_update(void);
+// void mech_update_lander_state(void);
+// void mech_reset_simulation(void);
 
 // these are the main functions in main.cpp
 void run_graphics(int argc, char *argv[]);
