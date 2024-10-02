@@ -42,7 +42,7 @@ class LanderEnv(gym.Env):
         )
 
     def step(
-        self, action: torch.Tensor
+        self, action: np.ndarray
     ) -> Tuple[torch.Tensor, float, bool, bool, Dict[str, Any]]:
         """
         Run one timestep of the environment's dynamics using the given action.
@@ -63,11 +63,13 @@ class LanderEnv(gym.Env):
         self.lander.update(action_tuple)
 
         # Get state from C++ Agent and convert to PyTorch tensor
-        observation = torch.tensor(self.lander.get_state(), dtype=torch.float32)
+        obs_raw = self.lander.get_state()
+        # just the first 12 variables
+        observation = torch.tensor(obs_raw[0:12], dtype=torch.float32)
         reward = self.lander.get_reward()
         terminated = self.lander.is_done()
         truncated = False
-        info = {}
+        info = {"climb_speed": obs_raw[12], "ground_speed": obs_raw[13]}
 
         return observation, reward, terminated, truncated, info
 
@@ -92,8 +94,13 @@ class LanderEnv(gym.Env):
             pass
 
         # Get initial state from C++ Agent and convert to PyTorch tensor
-        observation = torch.tensor(self.lander.reset(), dtype=torch.float32)
-        info = {}
+
+        # again only extract the relevant stuff
+        # Get state from C++ Agent and convert to PyTorch tensor
+        obs_raw = self.lander.reset()
+        # just the first 12 variables
+        observation = torch.tensor(obs_raw[0:12], dtype=torch.float32)
+        info = {"climb_speed": obs_raw[12], "ground_speed": obs_raw[13]}
 
         return observation, info
 

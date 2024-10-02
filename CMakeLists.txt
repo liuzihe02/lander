@@ -12,6 +12,10 @@ add_compile_options(-O3 -Wno-deprecated-declarations)
 # Set the source directory
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/lander_cpp)
 
+############################################
+### main.cpp for lander visualization ######
+############################################
+
 # Find required packages
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
@@ -39,7 +43,9 @@ target_link_libraries(lander
     GLUT::GLUT
 )
 
-#  BELOW CODE TO GENERATE THE PYTHON ENVIRONMENT MODULE, from our Agent class
+##############################################
+### Using Pybind on the C++ modules ##########
+##############################################
 
 # Add the Python module
 pybind11_add_module(lander_agent_cpp

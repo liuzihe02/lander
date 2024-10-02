@@ -26,7 +26,7 @@ model = PPO(
 )
 
 # Train the model
-total_timesteps = 10000  # Adjust this based on your needs
+total_timesteps = 200000  # Adjust this based on your needs
 model.learn(total_timesteps=total_timesteps)
 
 # Save the model

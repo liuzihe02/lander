@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     {
         if (agent_flag)
         {
-            cout << "issues with global variables, in setAction" << endl;
+            cout << "issues with global variables. Not implemented yet!" << endl;
             return 1;
         }
         // TODO: the referencing & here MAY CAUSE ISSUES

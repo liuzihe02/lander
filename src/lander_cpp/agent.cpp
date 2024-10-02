@@ -21,6 +21,8 @@ vector<double> Agent::reset()
     ::position = vector3d(0.0, -(MARS_RADIUS + 10000.0), 0.0);
     ::velocity = vector3d(0.0, 0.0, 0.0);
     ::orientation = vector3d(0.0, 0.0, 910.0);
+
+    // these are always fixed!
     ::delta_t = 0.1;
     ::parachute_status = NOT_DEPLOYED;
     ::stabilized_attitude = true;
@@ -55,7 +57,9 @@ vector<double> Agent::getState()
         ::velocity.x, ::velocity.y, ::velocity.z,
         ::orientation.x, ::orientation.y, ::orientation.z,
         ::fuel,
-        ::altitude};
+        ::altitude,
+        ::climb_speed,
+        ::ground_speed};
     return state; // This returns a COPY that can be modified without affecting the originals
 }
 

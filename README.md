@@ -45,6 +45,10 @@ Refactoring of global variables. All variables are declared as `extern` in lande
 Note that you need to install `pybind` in linux to wrap your C++ classes around Python wrappers. Then, you can call C++ classes from Python as if you were running them in C++. This is needed as the codebase is in C++, but we want to do training in Python.
 - Due to our functions in C++ being all global currently, this complicates things
 
+### `libtorch`
+
+When compiling and linking with LibTorch, you need to add the neccessary headers
+
 ### Running Files
 
 - After building, we can run `./lander` from `build` folder, to run `main.cpp`

@@ -67,7 +67,10 @@
         "valarray": "cpp",
         "variant": "cpp",
         "codecvt": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "bitset": "cpp",
+        "regex": "cpp",
+        "shared_mutex": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false
 }
