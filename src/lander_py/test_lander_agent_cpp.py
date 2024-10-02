@@ -41,8 +41,8 @@ for i in range(10):
     state = agent.get_state()
     print(f"State: {state}")
 
-    if agent.is_done():
-        print(f"Episode finished! Final reward: {agent.get_reward([100,-100,-1])}")
+    if agent.is_landed():
+        print("Episode finished!")
         break
 
 # %%

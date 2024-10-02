@@ -206,21 +206,22 @@ class LanderEnv(gym.Env):
     def reward_function(self, landed, crashed, altitude, climb_speed):
         "landed and crashed are bools"
         if landed and not crashed:
-            return 10000000
+            return 100000
         elif crashed:
-            return -1000000
+            return -10000
 
         # not landed yet, neg reward at each step, if not itll take forever
         # print(climb_speed)
         # climb_speed somewhere between 0-100
         if altitude < 200:
             # extremely high penalty for speed near mars
-            return -0.5 * (climb_speed**2)
+            return -0.2 * (climb_speed**2)
         if altitude < 1000:
             # extremely high penalty for speed near mars
-            return -0.2 * (climb_speed**2)
+            return -0.1 * (climb_speed**2)
         if altitude < 2000:
             # extremely high penalty for speed near mars
-            return -0.2 * (climb_speed**2)
+            return -0.04 * (climb_speed**2)
         else:
-            return -0.1 * abs(climb_speed)
+            return -0.02 * abs(climb_speed)
+        # return -1.0

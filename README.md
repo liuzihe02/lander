@@ -1,5 +1,5 @@
-# lander
-This project uses [Stables Baselines 3](https://stable-baselines3.readthedocs.io/en/master/#) to implement [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347) to simulate spacecraft landing. Our graphics and simulation engine are implemented on `C++` while training and inference are in `Python`. 
+# A PPO Method in Mars Lander
+This project uses [Stables Baselines 3](https://stable-baselines3.readthedocs.io/en/master/#) to implement [Proximal Policy Optimization](https://arxiv.org/abs/1707.06347) to simulate spacecraft landing. Our graphics and simulation engine are implemented on `C++`, while model training and inference are in `Python`. 
 
 ## Quickstart
 
@@ -59,12 +59,63 @@ We can see regularly, the agent is penalised slightly (primarily to address the 
 
 Further work is required for this environment, via better reward shaping or simply training for longer.
 
-## Reposity structure
+
+## Repository structure
 
 ```
+.
+├── CMakeLists.txt
+├── README.md
+├── requirements.txt
+├── src
+│   ├── assignment2.py
+│   ├── lander_cpp
+│   │   ├── agent.cpp
+│   │   ├── agent_wrapper.cpp
+│   │   ├── autopilot.cpp
+│   │   ├── lander.cpp
+│   │   ├── lander.h
+│   │   ├── lander_graphics.cpp
+│   │   ├── lander_mechanics.cpp
+│   │   └── main.cpp
+│   ├── lander_py
+│   │   ├── benchmark_agents.py
+│   │   ├── lander_env.py
+│   │   ├── test_lander_agent_cpp.py
+│   │   ├── test_lander_env.py
+│   │   └── train.py
+│   └── spring
+│       ├── assignment1.py
+│       ├── assignment3.cpp
+│       ├── spring.cpp
+│       ├── spring.py
+│       └── visualize_cpp.py
+└── utils.py
+```
 
+`src/lander_cpp/` contains the `OpenGL` graphics method in `lander_graphics` and core numerical simulation methods in `lander_mechanics`. `agent.cpp` contains our `Agent` interface with Python, while `agent_wrapper` uses `Pybind` to wrap around our `Agent` class so that we can call them in Python. `autopilot` contains the C++ proportional controller implementation. `main.cpp` contains the main function to display the graphics engine and run an agent without using the engine.
 
-## Notes
+> As basically all functions and variables are global, it's very difficult to containerize methods and integrate our `Agent` class seamlessly into the graphics engine. Major refactoring is needed to containerize `update_lander_state()`, `autopilot()`, `numerical_dynamics()`, `update_visualization()` by taking in our `Agent` class as a parameter, or accessing variables locally
+
+In `src/lander_py/`, this contains code to train and do evaluate our agents. `test_lander_agent_cpp` tests whether `pybind11` has successfully translated all our methods, while `test_lander_env` tests whether our `gymnasium` environment is working as intended.
+
+`spring/` contains some of the assignment code for simulating simple harmonic motion.
+
+## Compiling the project
+
+We use `Cmake` to compile our lander project (but not for spring). Make sure you have `Cmake`, `Pybind11`,`OpenGL` and `GLUT` installed for the `C++` projects.
+
+1. Ensure `CMakeLists.txt` is in the root directory
+2. Create a build directory in the root: `mkdir build && cd build`
+3. Run CMake: `cmake ..`
+4. Build the project: `make`
+
+> After compiling, you can do `import build.lander_agent_cpp as lander_agent_cpp` to use modules from our C++ `Agent` class, and run C++ modules directly from Python
+
+### Running Files
+
+- After building, we can run `./lander` from `build` folder, to run `main.cpp`
+- To use the modules in `lander_agent_cpp.so`, to import from this file like a regular Python files containing classes
 
 ### OpenGL on WSL
 
@@ -73,46 +124,12 @@ To set up OpenGL to display correctly on WSL, follow these [instructions](https:
 - set `export DISPLAY=[Your IP Address]:0` where `0` means your screen number. You should've set this to zero previously.
 - change `LIBGL_ALWAYS_INDIRECT=1`
 
-### Makefile
 
-Note that currently, the make files only compiles lander projects.
+## Refactoring of Global Variables
 
-## Main Changes
+Previously, the repo used a flag to selectively declare variables. All variables are now declared as `extern` in `lander.h`, and fully declared at the start of the file where they are first used.
+- Ideally we would use singleton classes here or encapsulated classes, but there's simply too many variables interacting with each other
 
-Refactoring of global variables. All variables are declared as `extern` in lander.h, and declared at the start of the file when they are first used.
-- I know this is bad practice, but I have no choice as I need to modularise the code
-- Ideally we would use singleton classes here or OOP to encapsulate classes
-    - I don't think its a good idea to have so many global variables, but theres nothing I can do about it.
-    - This is causing me alot of headaches.
+- added a `render` variable that allows me to run simulations without `GLUT`
+    - currently, only `render=true, agent_flag=false` and `render=false,agent_flag=true` are supported
 
-
-- added a `render` variable that allows me to run simulations without GLUT
-    - The functions starting with `mech` are rewritten by me to allow to run without GLUT
-
-- `lander.cpp`
-    - changes like in assignment
-- `autopilot.cpp`
-- `main.cpp`
-    - 
-
-## Extra Requirements
-
-### `cmake`
-
-1. Place `CMakeLists.txt` in the root directory of your project
-2. Create a build directory in the root: `mkdir build && cd build`
-3. Run CMake: `cmake ..`
-4. Build the project: `make`
-
-### `pybind`
-Note that you need to install `pybind` in linux to wrap your C++ classes around Python wrappers. Then, you can call C++ classes from Python as if you were running them in C++. This is needed as the codebase is in C++, but we want to do training in Python.
-- Due to our functions in C++ being all global currently, this complicates things
-
-### `libtorch`
-
-When compiling and linking with LibTorch, you need to add the neccessary headers
-
-### Running Files
-
-- After building, we can run `./lander` from `build` folder, to run `main.cpp`
-- To use the modules in `lander_agent_cpp.so`, to import from this file like a regular Python files containing classes
