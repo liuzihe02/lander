@@ -3,3 +3,5 @@ matplotlib
 tqdm
 pybind11
 gymnasium
+torch
+stable-baselines3
