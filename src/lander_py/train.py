@@ -18,7 +18,7 @@ env = Monitor(env=LanderEnv())
 model = PPO(
     policy="MlpPolicy",
     env=env,
-    # learning_rate=0.0008,  # increase lr
+    learning_rate=0.0005,  # increase lr
     # n_epochs=10,
     # clip_range=0.3,  # allow bigger policy updates
     ent_coef=0.2,  # more randomness, default is zero?
@@ -30,7 +30,7 @@ model = PPO(
 # model = PPO.load("current_model")
 
 # Train the model
-total_timesteps = 100000  # Adjust this based on your needs
+total_timesteps = 400000  # Adjust this based on your needs
 model.learn(total_timesteps=total_timesteps)
 
 # Save the model

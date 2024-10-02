@@ -37,8 +37,12 @@ class LanderEnv(gym.Env):
 
         # Define action and observation space
         self.action_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
+
+        # # try discrete space too
+        # self.action_space = gym.spaces.Discrete(10)  # 10 discrete levels
+
         self.observation_space = gym.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(7,), dtype=np.float32
+            low=-np.inf, high=np.inf, shape=(9,), dtype=np.float32
         )
 
     def step(
@@ -71,8 +75,11 @@ class LanderEnv(gym.Env):
         #     obs_raw_cur[12],
         # )
 
-        # # print the action out of curiosity
+        # # # print the action out of curiosity
         # print("Action chosen by model for next state", action)
+
+        # # map discrete levels to actual throttle values
+        # action = action / 9.0  # choices ranges from 0 till 9 inclusive
 
         # use the actions
         action_tuple = tuple(action.flatten())
@@ -93,8 +100,8 @@ class LanderEnv(gym.Env):
         #     obs_raw[12],
         # )
 
-        # POSITION AND VELOCITY, altitude
-        observation = complete_state[[1, 2, 3, 4, 5, 6, 11]]
+        # POSITION AND VELOCITY, altitude, and climb speed
+        observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
 
         # define the reward
         reward = self.reward_function(
@@ -104,7 +111,7 @@ class LanderEnv(gym.Env):
             complete_state[12],
         )
 
-        # print("reward is ", reward)
+        # print("reward is ", reward, " altitude ", complete_state[11])
 
         terminated = self.lander.is_landed() or self.lander.is_crashed()
         truncated = False
@@ -164,12 +171,13 @@ class LanderEnv(gym.Env):
         # Get state from C++ Agent and convert to PyTorch tensor
         complete_state = np.array(self.lander.reset(init_conditions))
 
-        # POSITION AND VELOCITY, altitude
-        observation = complete_state[[1, 2, 3, 4, 5, 6, 11]]
+        # position, velocity, altitude, and fuel, and climb speed
+        observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
         info = {}
 
         return observation, info
 
+    # be careful of this obs part
     def classic_control_policy(self, obs):
         # this observation is from our step method! not the complete 14-length state
         # already a numpy array
@@ -178,7 +186,8 @@ class LanderEnv(gym.Env):
 
         pos = obs[0:3]
         v = obs[3:6]
-        altitude = obs[6]
+        # becareful of how you arrange obs
+        altitude = obs[7]
 
         e_r = pos / np.linalg.norm(pos)
         e = -(0.5 + Kh * altitude + np.dot(v, e_r))
@@ -197,18 +206,21 @@ class LanderEnv(gym.Env):
     def reward_function(self, landed, crashed, altitude, climb_speed):
         "landed and crashed are bools"
         if landed and not crashed:
-            return 1000000
+            return 10000000
         elif crashed:
-            return -10000
+            return -1000000
 
         # not landed yet, neg reward at each step, if not itll take forever
         # print(climb_speed)
         # climb_speed somewhere between 0-100
         if altitude < 200:
             # extremely high penalty for speed near mars
-            return -0.04 * (climb_speed**2)
+            return -0.5 * (climb_speed**2)
         if altitude < 1000:
             # extremely high penalty for speed near mars
-            return -0.02 * (climb_speed**2)
+            return -0.2 * (climb_speed**2)
+        if altitude < 2000:
+            # extremely high penalty for speed near mars
+            return -0.2 * (climb_speed**2)
         else:
-            return -0.02 * abs(climb_speed)
+            return -0.1 * abs(climb_speed)

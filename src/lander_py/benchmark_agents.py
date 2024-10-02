@@ -35,6 +35,7 @@ def run_single_comparison_episode(model_path):
                 action = env.classic_control_policy(obs)
             else:  # rl
                 action, _ = model.predict(obs, deterministic=True)
+                # print(action)
 
             obs, _, terminated, truncated, info = env.step(action)
             done = terminated or truncated
