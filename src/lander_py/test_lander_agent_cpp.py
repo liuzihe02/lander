@@ -42,7 +42,7 @@ for i in range(10):
     print(f"State: {state}")
 
     if agent.is_done():
-        print(f"Episode finished! Final reward: {agent.get_reward()}")
+        print(f"Episode finished! Final reward: {agent.get_reward([100,-100,-1])}")
         break
 
 # %%

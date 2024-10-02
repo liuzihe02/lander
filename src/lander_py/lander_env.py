@@ -59,6 +59,7 @@ class LanderEnv(gym.Env):
         """
         # Convert PyTorch tensor action to tuple for C++ Agent
         # call detach on this
+        print(action)
         action_tuple = tuple(action.flatten())
         self.lander.update(action_tuple)
 
@@ -66,7 +67,16 @@ class LanderEnv(gym.Env):
         obs_raw = self.lander.get_state()
         # just the first 12 variables
         observation = torch.tensor(obs_raw[0:12], dtype=torch.float32)
-        reward = self.lander.get_reward()
+
+        # define the reward
+        reward = self.lander.get_reward(
+            [
+                10,  # success landing
+                -10,  # failure
+                -1.0,  # timestep
+            ]
+        )
+
         terminated = self.lander.is_done()
         truncated = False
         info = {"climb_speed": obs_raw[12], "ground_speed": obs_raw[13]}

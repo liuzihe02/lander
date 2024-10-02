@@ -226,7 +226,7 @@ public:
   // virtual tuple<double> getActions();
   virtual std::vector<double> getState();
   virtual bool isDone() const;
-  virtual double getReward() const;
+  virtual double getReward(vector<double> rew_list) const;
 
   // virtual bool setActions(tuple<double> actions);
   tuple<double> actions;

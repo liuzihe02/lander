@@ -100,7 +100,7 @@ def plot_single_episode_comparison(ppo_data, classic_data):
 
 
 def main():
-    model_path = "./src/lander_py/current_model"
+    model_path = "./src/lander_py/current_model_base"
     ppo_data, classic_data = run_single_comparison_episode(model_path)
     plot_single_episode_comparison(ppo_data, classic_data)
 

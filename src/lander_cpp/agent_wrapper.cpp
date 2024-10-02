@@ -37,9 +37,9 @@ public:
         PYBIND11_OVERRIDE(bool, Agent, isDone);
     }
 
-    double getReward() const override
+    double getReward(vector<double> rew_list) const override
     {
-        PYBIND11_OVERRIDE(double, Agent, getReward);
+        PYBIND11_OVERRIDE(double, Agent, getReward, rew_list);
     }
 };
 
