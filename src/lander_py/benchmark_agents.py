@@ -38,29 +38,15 @@ def run_single_comparison_episode(model_path):
 
     for env_type, data in zip([False, True], [ppo_data, classic_data]):
         env = LanderEnv()
-        MARS_RADIUS = 3386000.0
-        init_conditions = [
-            0.0,  # x position
-            -(MARS_RADIUS + 10000),  # y position
-            0.0,  # z position
-            0.0,  # x velocity
-            0.0,  # y velocity
-            0.0,  # z velocity
-            0.0,  # roll
-            0.0,  # pitch
-            910.0,  # yaw
-        ]
-        obs, _ = env.reset(init_conditions)
+        obs, _ = env.reset()
         done = False
         timestep = 0
 
         while not done:
             if env_type:  # Classic control
                 action = env.classic_control_policy(obs)
-                action = np.array([0.1])
             else:  # PPO
                 action, _ = model.predict(obs, deterministic=True)
-                action = np.array([0.9])
 
             obs, _, terminated, truncated, info = env.step(action)
             done = terminated or truncated

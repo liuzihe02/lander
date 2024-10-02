@@ -16,19 +16,7 @@ def test_lander_env(n_episodes=5, max_steps=1000):
 
     for episode in range(n_episodes):
         print(f"Episode {episode + 1}")
-        MARS_RADIUS = 3386000.0
-        init_conditions = [
-            0.0,  # x position
-            -(MARS_RADIUS + 10000),  # y position
-            0.0,  # z position
-            0.0,  # x velocity
-            0.0,  # y velocity
-            0.0,  # z velocity
-            0.0,  # roll
-            0.0,  # pitch
-            910.0,  # yaw
-        ]
-        observation, _ = env.reset(init_conditions)
+        observation, _ = env.reset()
         total_reward = 0
 
         for step in range(max_steps):

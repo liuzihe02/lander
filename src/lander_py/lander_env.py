@@ -73,9 +73,7 @@ class LanderEnv(gym.Env):
 
         return observation, reward, terminated, truncated, info
 
-    def reset(
-        self, init_conditions, seed=None, options=None
-    ) -> Tuple[torch.Tensor, Dict[str, Any]]:
+    def reset(self, seed=None, options=None) -> Tuple[torch.Tensor, Dict[str, Any]]:
         """
         Reset the environment to an initial state.
 
