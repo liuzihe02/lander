@@ -1,7 +1,7 @@
 import gymnasium as gym
 import torch
 import numpy as np
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, List
 import os
 import sys
 
@@ -33,7 +33,7 @@ class LanderEnv(gym.Env):
         """
         super(LanderEnv, self).__init__()
 
-        self.lander = lander_agent_cpp.Agent()
+        self.lander = lander_agent_cpp.PyAgent()
 
         # Define action and observation space
         self.action_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
@@ -74,7 +74,7 @@ class LanderEnv(gym.Env):
         return observation, reward, terminated, truncated, info
 
     def reset(
-        self, seed: int | None = None, options: Dict[str, Any] | None = None
+        self, init_conditions, seed=None, options=None
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
         """
         Reset the environment to an initial state.
@@ -93,22 +93,48 @@ class LanderEnv(gym.Env):
             # Handle options if needed
             pass
 
+        # init_conditions
+        MARS_RADIUS = 3386000.0
+        init_conditions = [
+            0.0,  # x position
+            -(MARS_RADIUS + 10000),  # y position
+            0.0,  # z position
+            0.0,  # x velocity
+            0.0,  # y velocity
+            0.0,  # z velocity
+            0.0,  # roll
+            0.0,  # pitch
+            910.0,  # yaw
+        ]
+
         # Get initial state from C++ Agent and convert to PyTorch tensor
 
         # again only extract the relevant stuff
         # Get state from C++ Agent and convert to PyTorch tensor
-        obs_raw = self.lander.reset()
+        obs_raw = self.lander.reset(init_conditions)
         # just the first 12 variables
         observation = torch.tensor(obs_raw[0:12], dtype=torch.float32)
         info = {"climb_speed": obs_raw[12], "ground_speed": obs_raw[13]}
 
         return observation, info
 
-    def close(self):
-        """
-        Clean up the environment.
+    def classic_control_policy(self, obs):
+        # note that delta must be between 0 and 1!
+        Kh, Kp, delta = 2e-2, 2.0, 0.5
 
-        This method should be called when the environment is no longer needed.
-        """
-        # Implement any cleanup if needed
-        pass
+        pos = obs[1:4].numpy()
+        v = obs[4:7].numpy()
+        altitude = obs[11].item()
+
+        e_r = pos / np.linalg.norm(pos)
+        e = -(0.5 + Kh * altitude + np.dot(v, e_r))
+        P_out = Kp * e
+
+        if P_out <= -delta:
+            throttle = 0
+        elif -delta < P_out < 1 - delta:
+            throttle = delta + P_out
+        else:
+            throttle = 1
+
+        return torch.tensor([throttle], dtype=torch.float32)

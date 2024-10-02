@@ -12,70 +12,114 @@ from stable_baselines3 import PPO
 from lander_env import LanderEnv
 
 
-def run_episode_and_plot(model_path):
-    # Load the trained model
+# %%
+
+from stable_baselines3 import PPO
+from lander_env import LanderEnv
+
+
+def run_single_comparison_episode(model_path):
     model = PPO.load(model_path)
 
-    # Create the environment
-    env = LanderEnv()
+    ppo_data = {
+        "altitudes": [],
+        "descent_rates": [],
+        "fuel_levels": [],
+        "throttles": [],
+        "timesteps": [],
+    }
+    classic_data = {
+        "altitudes": [],
+        "descent_rates": [],
+        "fuel_levels": [],
+        "throttles": [],
+        "timesteps": [],
+    }
 
-    # Initialize lists to store data
-    altitudes = []
-    timesteps = []
-    descent_rates = []
+    for env_type, data in zip([False, True], [ppo_data, classic_data]):
+        env = LanderEnv()
+        MARS_RADIUS = 3386000.0
+        init_conditions = [
+            0.0,  # x position
+            -(MARS_RADIUS + 10000),  # y position
+            0.0,  # z position
+            0.0,  # x velocity
+            0.0,  # y velocity
+            0.0,  # z velocity
+            0.0,  # roll
+            0.0,  # pitch
+            910.0,  # yaw
+        ]
+        obs, _ = env.reset(init_conditions)
+        done = False
+        timestep = 0
 
-    # Reset the environment
-    obs, info = env.reset()
-    done = False
-    timestep = 0
+        while not done:
+            if env_type:  # Classic control
+                action = env.classic_control_policy(obs)
+                action = np.array([0.1])
+            else:  # PPO
+                action, _ = model.predict(obs, deterministic=True)
+                action = np.array([0.9])
 
-    while not done:
-        # Get the model's action
-        action, _ = model.predict(obs, deterministic=True)
+            obs, _, terminated, truncated, info = env.step(action)
+            done = terminated or truncated
 
-        # Take a step in the environment
-        obs, _, terminated, truncated, info = env.step(action)
-        done = terminated or truncated
+            data["altitudes"].append(obs[11].item())
+            data["descent_rates"].append(-info["climb_speed"])
+            data["fuel_levels"].append(obs[10].item())
+            data["throttles"].append(action[0].item())
+            data["timesteps"].append(timestep)
 
-        # Extract altitude from the observation
-        altitude = obs[11].item()
+            timestep += 1
 
-        # Extract climb speed from info and convert to descent rate
-        descent_rate = -info["climb_speed"]
+    return ppo_data, classic_data
 
-        # Store the data
-        altitudes.append(altitude)
-        timesteps.append(timestep)
-        descent_rates.append(descent_rate)
 
-        timestep += 1
+# %%
 
-    # Close the environment
-    env.close()
+import matplotlib.pyplot as plt
 
-    # Create a figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12))
 
-    # Plot altitude vs time
-    ax1.plot(timesteps, altitudes)
-    ax1.set_title("Lander Altitude vs Time")
-    ax1.set_xlabel("Timestep")
-    ax1.set_ylabel("Altitude")
-    ax1.grid(True)
+def plot_single_episode_comparison(ppo_data, classic_data):
+    fig, axes = plt.subplots(2, 2, figsize=(15, 15))
 
-    # Plot descent rate vs time
-    ax2.plot(timesteps, descent_rates)
-    ax2.set_title("Lander Descent Rate vs Time")
-    ax2.set_xlabel("Timestep")
-    ax2.set_ylabel("Descent Rate")
-    ax2.grid(True)
+    metrics = ["altitudes", "descent_rates", "fuel_levels", "throttles"]
+    titles = ["Lander Altitude", "Lander Descent Rate", "Fuel Level", "Throttle"]
+    y_labels = ["Altitude", "Descent Rate", "Fuel Level", "Throttle"]
 
-    # Adjust the layout and display the plot
+    for (i, j), (metric, title, y_label) in zip(
+        [(0, 0), (0, 1), (1, 0), (1, 1)], zip(metrics, titles, y_labels)
+    ):
+        ax = axes[i, j]
+        ax.plot(ppo_data["timesteps"], ppo_data[metric], label="PPO", alpha=0.7)
+        ax.plot(
+            classic_data["timesteps"],
+            classic_data[metric],
+            label="Classic Control",
+            alpha=0.7,
+        )
+
+        ax.set_title(title)
+        ax.set_xlabel("Timestep")
+        ax.set_ylabel(y_label)
+        ax.legend()
+        ax.grid(True)
+
     plt.tight_layout()
     plt.show()
 
 
-# Run the function with the path to your saved model
-run_episode_and_plot("./src/lander_py/current_model")
+# %%
+
+
+def main():
+    model_path = "./src/lander_py/current_model"
+    ppo_data, classic_data = run_single_comparison_episode(model_path)
+    plot_single_episode_comparison(ppo_data, classic_data)
+
+
+if __name__ == "__main__":
+    main()
 
 # %%

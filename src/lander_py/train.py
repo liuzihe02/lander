@@ -26,23 +26,12 @@ model = PPO(
 )
 
 # Train the model
-total_timesteps = 200000  # Adjust this based on your needs
+total_timesteps = 100000  # Adjust this based on your needs
 model.learn(total_timesteps=total_timesteps)
 
 # Save the model
 model.save("./src/lander_py/current_model")
 
 # Evaluate the model
-mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=10)
+mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=20)
 print(f"Mean reward: {mean_reward:.2f} +/- {std_reward:.2f}")
-
-# Test the model
-obs = env.reset()
-for _ in range(1000):
-    action, _states = model.predict(obs, deterministic=True)
-    # the step here is still the old step
-    obs, reward, terminated, info = env.step(action)
-    if terminated:
-        obs = env.reset()
-
-env.close()
