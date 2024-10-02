@@ -11,9 +11,6 @@
 bool render = false;
 bool agent_flag = true;
 
-// actually declare it here
-Agent agent;
-
 int main(int argc, char *argv[])
 // Initializes GLUT windows and lander state, then enters GLUT main loop
 {
@@ -142,7 +139,22 @@ void run_one_episode()
     if (agent_flag)
     {
 
-        agent.reset();
+#include <vector>
+
+        std::vector<double> init_conditions = {
+            0.0,                    // x position
+            -(MARS_RADIUS + 10000), // y position
+            0.0,                    // z position
+            50.0,                   // x velocity
+            0.0,                    // y velocity
+            0.0,                    // z velocity
+            0.0,                    // roll
+            0.0,                    // pitch
+            910.0                   // yaw
+        };
+        agent.reset(init_conditions);
+
+        float test_throttle = 0.0;
 
         // Main simulation loop
         while (!landed && !crashed)
@@ -160,14 +172,19 @@ void run_one_episode()
                       << " Vx: " << states[4] << " Global V X: " << velocity.x
                       << " Vy: " << states[5] << " Global V Y: " << position.x
 
-                      << " Fuel Used: " << (1.0 - states[10]) * FUEL_CAPACITY
+                      << " Fuel Left: " << states[10]
                       << " Altitude: " << states[11] << " Global Altitude: " << altitude
                       // action made
                       << " Throttle Action: " << throttle
                       << endl;
 
-            // step with an arbitrary action
-            agent.update(std::make_tuple(1.0));
+            // step with increasing throttle to test
+            if (test_throttle < 1.0)
+            {
+                test_throttle += 0.00012;
+            }
+
+            agent.update(std::make_tuple(test_throttle));
 
             states = agent.getState();
             std::cout << " POSTSTEP - Time: " << states[0]

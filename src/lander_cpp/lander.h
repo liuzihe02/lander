@@ -220,33 +220,16 @@ public:
   // the virtual declarations here allow overriding of functions, from inherited classes!
   virtual ~Agent() = default; // Add a virtual destructor
   // reset and step very similar to gym env
-  virtual vector<double> reset();
+  virtual vector<double> reset(vector<double> init_conditions);
   virtual void update(tuple<double> actions);
   // this is public so numerical dynamics can use this
-  virtual tuple<double> getActions();
+  // virtual tuple<double> getActions();
   virtual std::vector<double> getState();
   virtual bool isDone() const;
   virtual double getReward() const;
 
-  virtual bool setActions(tuple<double> actions);
-
-  // private variable
+  // virtual bool setActions(tuple<double> actions);
   tuple<double> actions;
-
-  // private:
-  //   void syncToGlobals();
-  //   void syncFromGlobals();
-
-  //   // Private copies of global variables
-  //   // these are all shadowed
-  //   double simulation_time;
-  //   vector3d position;
-  //   vector3d velocity;
-  //   vector3d orientation;
-  //   double fuel;
-  //   bool landed;
-  //   bool crashed;
-  //   double altitude;
 };
 
 // DECLARE ALL GLOBAL VARIABLES HERE
@@ -283,6 +266,7 @@ extern Agent agent;
 
 // Lander state
 extern vector3d position, orientation, velocity, velocity_from_positions, last_position;
+// throttle defined as extern
 extern double climb_speed, ground_speed, altitude, throttle, fuel;
 extern bool stabilized_attitude, autopilot_enabled, parachute_lost;
 extern parachute_status_t parachute_status;
@@ -361,13 +345,6 @@ void glut_key(unsigned char k, int x, int y);
 // these files are in autopilot.cpp
 //  my custom methods in lander.cpp
 vector3d get_acceleration(void);
-
-// these modules are in lander_mechanics.cpp
-// custom functions to run simulations without glut
-// remember to set render to false for this
-// void mech_update(void);
-// void mech_update_lander_state(void);
-// void mech_reset_simulation(void);
 
 // these are the main functions in main.cpp
 void run_graphics(int argc, char *argv[]);

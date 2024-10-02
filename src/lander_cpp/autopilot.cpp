@@ -7,6 +7,9 @@ double K_h = 2e-2;
 double K_p = 2;
 double delta = 0.5;
 
+// actually declare the agent here. this should be globally accessible!
+Agent agent;
+
 // Calculate error
 double calculate_error()
 {
@@ -64,8 +67,36 @@ void autopilot_control(void)
 
 void autopilot_agent(void)
 {
-    // get the first element of a tuple
-    double throttle_action = std::get<0>(agent.getActions());
-    // update global throttle
-    throttle = throttle_action;
+    // PARACHUTE ALGORITHIM GENERIC
+    //  First calculate if the lander is decelerating
+    vector3d acceleration = get_acceleration();
+    bool decelerating = (acceleration * velocity < 0);
+
+    // Then check if it is safe in general and decelerating
+    if (safe_to_deploy_parachute() && decelerating)
+    {
+        parachute_status = DEPLOYED;
+    }
+
+    // I CANT SEEM TO ACCESS GLOBAL AGENT ACTIONS, SO IVE SET THROTTLE IN UPDATE
+
+    // // get the first element of a tuple
+    // double throttle_action = std::get<0>(agent.actions);
+    // cout << "in autopilot, agent throttle is: " << get<0>(agent.actions) << " global throttle is: " << ::throttle << endl;
+    // // update GLOBAL throttle
+    // ::throttle = throttle_action;
+
+    // vector<double> states = agent.getState();
+    // std::cout << " RIGHT AFTER THROTTLE SET - Time: " << states[0]
+    //           // state
+    //           << " Rx: " << states[1] << " Global Pos X: " << position.x
+    //           << " Ry: " << states[2] << " Global Pos Y: " << position.y
+    //           << " Vx: " << states[4] << " Global V X: " << velocity.x
+    //           << " Vy: " << states[5] << " Global V Y: " << position.x
+
+    //           << " Fuel Left: " << (states[10]) * FUEL_CAPACITY
+    //           << " Altitude: " << states[11] << " Global Altitude: " << altitude
+    //           // action made
+    //           << " Throttle Action: " << throttle
+    //           << endl;
 }

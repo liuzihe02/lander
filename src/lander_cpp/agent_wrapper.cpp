@@ -12,9 +12,9 @@ public:
     using Agent::Agent; // Inherit the constructor
 
     // Override virtual functions
-    std::vector<double> reset() override
+    std::vector<double> reset(std::vector<double> init_conditions) override
     {
-        PYBIND11_OVERRIDE(std::vector<double>, Agent, reset);
+        PYBIND11_OVERRIDE(std::vector<double>, Agent, reset, init_conditions);
     }
 
     void update(std::tuple<double> actions) override
@@ -22,10 +22,10 @@ public:
         PYBIND11_OVERRIDE(void, Agent, update, actions);
     }
 
-    std::tuple<double> getActions() override
-    {
-        PYBIND11_OVERRIDE(std::tuple<double>, Agent, getActions);
-    }
+    // std::tuple<double> getActions() override
+    // {
+    //     PYBIND11_OVERRIDE(std::tuple<double>, Agent, getActions);
+    // }
 
     std::vector<double> getState() override
     {
@@ -45,11 +45,11 @@ public:
 
 PYBIND11_MODULE(lander_agent_cpp, m)
 {
-    py::class_<Agent, PyAgent>(m, "Agent")
+    py::class_<Agent, PyAgent>(m, "PyAgent")
         .def(py::init<>())
         .def("reset", &Agent::reset)
         .def("update", &Agent::update)
-        .def("get_actions", &Agent::getActions)
+        //.def("get_actions", &Agent::getActions)
         .def("get_state", &Agent::getState)
         .def("is_done", &Agent::isDone)
         .def("get_reward", &Agent::getReward);

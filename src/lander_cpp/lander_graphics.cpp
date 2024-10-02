@@ -111,6 +111,7 @@ unsigned long long time_program_started;
 // bool parachute_lost;
 // int stabilized_attitude_angle;
 
+/// throttle is defined externally here!
 vector3d position, orientation, velocity, velocity_from_positions, last_position;
 double climb_speed, ground_speed, altitude, throttle, fuel;
 bool stabilized_attitude, autopilot_enabled, parachute_lost;
