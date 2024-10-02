@@ -172,7 +172,7 @@ void run_one_episode()
                       << " Vx: " << states[4] << " Global V X: " << velocity.x
                       << " Vy: " << states[5] << " Global V Y: " << position.x
 
-                      << " Fuel Left: " << states[10]
+                      << " Fuel Left (Proportion): " << states[10]
                       << " Altitude: " << states[11] << " Global Altitude: " << altitude
                       // action made
                       << " Throttle Action: " << throttle
@@ -194,7 +194,7 @@ void run_one_episode()
                       << " Vx: " << states[4] << " Global V X: " << velocity.x
                       << " Vy: " << states[5] << " Global V Y: " << position.x
 
-                      << " Fuel Used: " << (1.0 - states[10]) * FUEL_CAPACITY
+                      << " Fuel Left (Proportion): " << states[10]
                       << " Altitude: " << states[11] << " Global Altitude: " << altitude
                       // action made
                       << " Throttle Action: " << throttle

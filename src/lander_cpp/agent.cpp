@@ -27,7 +27,9 @@ vector<double> Agent::reset(vector<double> init_conditions)
     ::orientation = vector3d(init_conditions[6], init_conditions[7], init_conditions[8]);
 
     // these are always fixed!
-    ::delta_t = 0.1;
+    // this is weird, increasing much more than 0.1 will break things
+    ::delta_t = 0.1; // speed up environment at the expense of less accuracy, less steps needed
+    // faster training
     ::parachute_status = NOT_DEPLOYED;
     ::stabilized_attitude = true;
     ::autopilot_enabled = true;

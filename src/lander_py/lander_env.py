@@ -38,7 +38,7 @@ class LanderEnv(gym.Env):
         # Define action and observation space
         self.action_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
         self.observation_space = gym.spaces.Box(
-            low=-np.inf, high=np.inf, shape=(12,), dtype=np.float32
+            low=-np.inf, high=np.inf, shape=(7,), dtype=np.float32
         )
 
     def step(
@@ -57,29 +57,75 @@ class LanderEnv(gym.Env):
             truncated (bool): Whether the episode was truncated.
             info (dict): Additional information about the environment.
         """
-        # Convert PyTorch tensor action to tuple for C++ Agent
-        # call detach on this
-        print(action)
+        # # current state
+        # obs_raw_cur = self.lander.get_state()
+        # print(
+        #     "CURRENT STATE ",
+        #     " simul time: ",
+        #     obs_raw_cur[0],
+        #     " fuel: ",
+        #     obs_raw_cur[10],
+        #     " altitude: ",
+        #     obs_raw_cur[11],
+        #     " climb speed: ",
+        #     obs_raw_cur[12],
+        # )
+
+        # # print the action out of curiosity
+        # print("Action chosen by model for next state", action)
+
+        # use the actions
         action_tuple = tuple(action.flatten())
         self.lander.update(action_tuple)
 
         # Get state from C++ Agent and convert to PyTorch tensor
-        obs_raw = self.lander.get_state()
-        # just the first 12 variables
-        observation = torch.tensor(obs_raw[0:12], dtype=torch.float32)
+        complete_state = np.array(self.lander.get_state())
+        # # NEXT STATE
+        # print(
+        #     "NEXT STATE ",
+        #     " simul time: ",
+        #     obs_raw[0],
+        #     " fuel: ",
+        #     obs_raw[10],
+        #     " altitude: ",
+        #     obs_raw[11],
+        #     " climb speed: ",
+        #     obs_raw[12],
+        # )
+
+        # POSITION AND VELOCITY, altitude
+        observation = complete_state[[1, 2, 3, 4, 5, 6, 11]]
 
         # define the reward
         reward = self.lander.get_reward(
             [
-                10,  # success landing
+                100000000,  # success landing
                 -10,  # failure
                 -1.0,  # timestep
             ]
         )
 
+        # print("reward is ", reward)
+
         terminated = self.lander.is_done()
         truncated = False
-        info = {"climb_speed": obs_raw[12], "ground_speed": obs_raw[13]}
+        # Include all 14 state variables in the info dictionary
+        info = {
+            "simulation_time": complete_state[0],
+            "position_x": complete_state[1],
+            "position_y": complete_state[2],
+            "position_z": complete_state[3],
+            "velocity_x": complete_state[4],
+            "velocity_y": complete_state[5],
+            "velocity_z": complete_state[6],
+            "orientation_x": complete_state[7],
+            "orientation_y": complete_state[8],
+            "orientation_z": complete_state[9],
+            "fuel": complete_state[10],
+            "altitude": complete_state[11],
+            "climb_speed": complete_state[12],
+            "ground_speed": complete_state[13],
+        }
 
         return observation, reward, terminated, truncated, info
 
@@ -97,42 +143,41 @@ class LanderEnv(gym.Env):
         """
         super().reset(seed=seed)
 
-        if options is not None:
-            # Handle options if needed
-            pass
-
         # init_conditions
         MARS_RADIUS = 3386000.0
         init_conditions = [
             0.0,  # x position
-            -(MARS_RADIUS + 10000),  # y position
+            (MARS_RADIUS + 10000),  # y position
             0.0,  # z position
             0.0,  # x velocity
             0.0,  # y velocity
             0.0,  # z velocity
             0.0,  # roll
             0.0,  # pitch
-            910.0,  # yaw
+            0.0,  # yaw
         ]
 
         # Get initial state from C++ Agent and convert to PyTorch tensor
 
         # again only extract the relevant stuff
         # Get state from C++ Agent and convert to PyTorch tensor
-        obs_raw = self.lander.reset(init_conditions)
-        # just the first 12 variables
-        observation = torch.tensor(obs_raw[0:12], dtype=torch.float32)
-        info = {"climb_speed": obs_raw[12], "ground_speed": obs_raw[13]}
+        complete_state = np.array(self.lander.reset(init_conditions))
+
+        # POSITION AND VELOCITY, altitude
+        observation = complete_state[[1, 2, 3, 4, 5, 6, 11]]
+        info = {}
 
         return observation, info
 
     def classic_control_policy(self, obs):
+        # this observation is from our step method! not the complete 14-length state
+        # already a numpy array
         # note that delta must be between 0 and 1!
         Kh, Kp, delta = 2e-2, 2.0, 0.5
 
-        pos = obs[1:4].numpy()
-        v = obs[4:7].numpy()
-        altitude = obs[11].item()
+        pos = obs[0:3]
+        v = obs[3:6]
+        altitude = obs[6]
 
         e_r = pos / np.linalg.norm(pos)
         e = -(0.5 + Kh * altitude + np.dot(v, e_r))
@@ -145,4 +190,4 @@ class LanderEnv(gym.Env):
         else:
             throttle = 1
 
-        return torch.tensor([throttle], dtype=torch.float32)
+        return np.array([throttle], dtype=np.float32)
