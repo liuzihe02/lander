@@ -97,17 +97,16 @@ class LanderEnv(gym.Env):
         observation = complete_state[[1, 2, 3, 4, 5, 6, 11]]
 
         # define the reward
-        reward = self.lander.get_reward(
-            [
-                100000000,  # success landing
-                -10,  # failure
-                -1.0,  # timestep
-            ]
+        reward = self.reward_function(
+            self.lander.is_landed(),
+            self.lander.is_crashed(),
+            complete_state[11],
+            complete_state[12],
         )
 
         # print("reward is ", reward)
 
-        terminated = self.lander.is_done()
+        terminated = self.lander.is_landed() or self.lander.is_crashed()
         truncated = False
         # Include all 14 state variables in the info dictionary
         info = {
@@ -123,6 +122,8 @@ class LanderEnv(gym.Env):
             "orientation_z": complete_state[9],
             "fuel": complete_state[10],
             "altitude": complete_state[11],
+            # climb speed is the dot product of velocity vector with the unit position vector
+            # we may want to negative this to get descent rate!
             "climb_speed": complete_state[12],
             "ground_speed": complete_state[13],
         }
@@ -191,3 +192,23 @@ class LanderEnv(gym.Env):
             throttle = 1
 
         return np.array([throttle], dtype=np.float32)
+
+    # custom reward function to try to get better learning!
+    def reward_function(self, landed, crashed, altitude, climb_speed):
+        "landed and crashed are bools"
+        if landed and not crashed:
+            return 1000000
+        elif crashed:
+            return -10000
+
+        # not landed yet, neg reward at each step, if not itll take forever
+        # print(climb_speed)
+        # climb_speed somewhere between 0-100
+        if altitude < 200:
+            # extremely high penalty for speed near mars
+            return -0.04 * (climb_speed**2)
+        if altitude < 1000:
+            # extremely high penalty for speed near mars
+            return -0.02 * (climb_speed**2)
+        else:
+            return -0.02 * abs(climb_speed)

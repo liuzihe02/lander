@@ -32,14 +32,14 @@ public:
         PYBIND11_OVERRIDE(std::vector<double>, Agent, getState);
     }
 
-    bool isDone() const override
+    bool isLanded() const override
     {
-        PYBIND11_OVERRIDE(bool, Agent, isDone);
+        PYBIND11_OVERRIDE(bool, Agent, isLanded);
     }
 
-    double getReward(vector<double> rew_list) const override
+    bool isCrashed() const override
     {
-        PYBIND11_OVERRIDE(double, Agent, getReward, rew_list);
+        PYBIND11_OVERRIDE(bool, Agent, isCrashed);
     }
 };
 
@@ -51,6 +51,6 @@ PYBIND11_MODULE(lander_agent_cpp, m)
         .def("update", &Agent::update)
         //.def("get_actions", &Agent::getActions)
         .def("get_state", &Agent::getState)
-        .def("is_done", &Agent::isDone)
-        .def("get_reward", &Agent::getReward);
+        .def("is_landed", &Agent::isLanded)
+        .def("is_crashed", &Agent::isCrashed);
 }

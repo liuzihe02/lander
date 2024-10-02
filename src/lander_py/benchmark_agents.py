@@ -51,6 +51,36 @@ def run_single_comparison_episode(model_path):
 
 
 # %%
+# def plot_single_episode_comparison(rl_data, classic_data):
+#     fig, axes = plt.subplots(2, 2, figsize=(15, 15))
+
+#     metrics = ["altitudes", "descent_rates", "fuel_levels", "throttles"]
+#     titles = ["Lander Altitude", "Lander Descent Rate", "Fuel Level", "Throttle"]
+#     y_labels = ["Altitude (m)", "Descent Rate (m/s)", "Fuel Level", "Throttle"]
+
+#     for (i, j), (metric, title, y_label) in zip(
+#         [(0, 0), (0, 1), (1, 0), (1, 1)], zip(metrics, titles, y_labels)
+#     ):
+#         ax = axes[i, j]
+#         ax.scatter(rl_data["timesteps"], rl_data[metric], label="RL", alpha=0.7)
+#         ax.scatter(
+#             classic_data["timesteps"],
+#             classic_data[metric],
+#             label="Classic Control",
+#             alpha=0.7,
+#             s=50,
+#         )
+
+#         ax.set_title(title)
+#         ax.set_xlabel("Timestep")
+#         ax.set_ylabel(y_label)
+#         ax.legend()
+#         ax.grid(True)
+
+#     plt.tight_layout()
+#     plt.show()
+
+
 def plot_single_episode_comparison(rl_data, classic_data):
     fig, axes = plt.subplots(2, 2, figsize=(15, 15))
 
@@ -62,13 +92,33 @@ def plot_single_episode_comparison(rl_data, classic_data):
         [(0, 0), (0, 1), (1, 0), (1, 1)], zip(metrics, titles, y_labels)
     ):
         ax = axes[i, j]
-        ax.plot(rl_data["timesteps"], rl_data[metric], label="RL", alpha=0.7)
-        ax.plot(
-            classic_data["timesteps"],
-            classic_data[metric],
-            label="Classic Control",
-            alpha=0.7,
-        )
+
+        if metric == "throttles":
+            ax.scatter(
+                rl_data["timesteps"], rl_data[metric], label="RL", alpha=0.7, s=50
+            )
+            ax.scatter(
+                classic_data["timesteps"],
+                classic_data[metric],
+                label="Classic Control",
+                alpha=0.7,
+                s=50,
+            )
+        else:
+            ax.plot(
+                rl_data["timesteps"],
+                rl_data[metric],
+                label="RL",
+                alpha=0.7,
+                linewidth=4,
+            )
+            ax.plot(
+                classic_data["timesteps"],
+                classic_data[metric],
+                label="Classic Control",
+                alpha=0.7,
+                linewidth=4,
+            )
 
         ax.set_title(title)
         ax.set_xlabel("Timestep")
@@ -82,7 +132,7 @@ def plot_single_episode_comparison(rl_data, classic_data):
 
 # %%
 def main():
-    model_path = "./src/lander_py/ppo_augmented_normal_reward"
+    model_path = "./src/lander_py/ppo_augmented_reward_less_entropy"
     rl_data, classic_data = run_single_comparison_episode(model_path)
     plot_single_episode_comparison(rl_data, classic_data)
 

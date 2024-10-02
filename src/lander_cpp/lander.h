@@ -225,8 +225,8 @@ public:
   // this is public so numerical dynamics can use this
   // virtual tuple<double> getActions();
   virtual std::vector<double> getState();
-  virtual bool isDone() const;
-  virtual double getReward(vector<double> rew_list) const;
+  virtual bool isLanded() const;
+  virtual bool isCrashed() const;
 
   // virtual bool setActions(tuple<double> actions);
   tuple<double> actions;

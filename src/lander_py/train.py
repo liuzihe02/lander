@@ -30,11 +30,11 @@ model = PPO(
 # model = PPO.load("current_model")
 
 # Train the model
-total_timesteps = 10000  # Adjust this based on your needs
+total_timesteps = 100000  # Adjust this based on your needs
 model.learn(total_timesteps=total_timesteps)
 
 # Save the model
-model.save("./src/lander_py/ppo_augmented_normal_reward")
+model.save("./src/lander_py/ppo_augmented_reward_less_entropy")
 
 # Evaluate the model
 mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=20)

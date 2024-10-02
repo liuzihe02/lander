@@ -94,26 +94,16 @@ vector<double> Agent::getState()
 //     return this->actions;
 // }
 
-bool Agent::isDone() const
+bool Agent::isLanded() const
 {
     // return the global ones, instead of the local variables
-    return ::landed || ::crashed;
+    return ::landed;
 }
 
-double Agent::getReward(vector<double> rew_list) const
-
-/**
- *note that delta_t is in terms of 0.1 seconds the simulation ends after 100-1000 seconds so average number of steps is 1000
- * when the end rewards are too large, incentive to explore more
- * I can afford to explore alot and get the big payout in the end
- */
+bool Agent::isCrashed() const
 {
-    if (::landed && !::crashed)
-        return rew_list[0];
-    if (::crashed)
-        return rew_list[1];
-    // this controls the descent time
-    return rew_list[2]; // Small negative reward for each step
+    // return the global ones, instead of the local variables
+    return ::crashed;
 }
 
 // void Agent::syncToGlobals()
