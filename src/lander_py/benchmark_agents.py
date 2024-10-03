@@ -66,7 +66,7 @@ def run_single_comparison_episode(model_path):
         cl_data["altitudes"].append(info["altitude"])
         cl_data["descent_rates"].append(-info["climb_speed"])
         cl_data["fuel_levels"].append(info["fuel"])
-        cl_data["throttles"].append(cl_env.model_to_real(real_action))
+        cl_data["throttles"].append(real_action)
         cl_data["timesteps"].append(cl_timestep)
 
         cl_timestep += 1
@@ -156,7 +156,7 @@ def plot_single_episode_comparison(rl_data, classic_data):
 
 # %%
 def main():
-    model_path = "./src/lander_py/ppo_base_long_less_explore"
+    model_path = "./src/lander_py/ppo_base_long"
     rl_data, classic_data = run_single_comparison_episode(model_path)
     plot_single_episode_comparison(rl_data, classic_data)
 

@@ -46,4 +46,4 @@ for i in range(0, all_timesteps, save_freq):
 
 # Evaluate the model
 mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=20)
-print(f"Mean reward: {mean_reward:.2f} +/- {std_reward:.2f}")
+print(f"Mean return: {mean_reward:.2f} +/- {std_reward:.2f}")

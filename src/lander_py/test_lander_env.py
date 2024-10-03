@@ -18,19 +18,27 @@ def test_lander_env(n_episodes=5, max_steps=10000):
     """
     env = LanderEnv()
 
-    total_rewards = []
+    # each element here is the return in each episode
+    all_returns = []
+    # each element here is the mean reward in each episode
+    all_mean_rewards = []
+    # this contains the number of steps in each episode
+    all_steps = []
 
     for episode in range(n_episodes):
+        # each element here is the reward per step
+        all_rewards_one_ep = []
         observation, _ = env.reset()
         total_reward = 0
+        step = 0
 
         for step in range(max_steps):
             # Generate a random action from normal or uniform distribution
-            model_action = np.array([1.1])
+            model_action = np.random.uniform(-1, 1, size=1)
 
             # Take a step in the environment
             next_observation, reward, terminated, truncated, _ = env.step(model_action)
-
+            print(f"reward is{reward}")
             total_reward += reward
 
             # print(f"Step {step + 1}")
@@ -43,12 +51,29 @@ def test_lander_env(n_episodes=5, max_steps=10000):
                 # print(f"Truncated: {truncated}")
                 break
 
+            # append the reward after each step
+            all_rewards_one_ep.append(reward)
+            step += 1
+
+        # append the mean reward after each episode
+        all_mean_rewards.append(np.mean(all_rewards_one_ep))
+        # append the return after each episode
+        all_returns.append(total_reward)
+        # add the number of steps in this episode
+        all_steps.append(step)
+
         print(f"Episode {episode + 1} finished after {step + 1} steps")
         print(f"Total reward: {total_reward:.4f}")
 
-        total_rewards.append(total_reward)
-
-    print(f"mean return is{sum(total_rewards)/len(total_rewards)}")
+    print(
+        f"Mean of the mean_reward per episode is {np.mean(all_mean_rewards)}, with std of {np.std(all_mean_rewards)}"
+    )
+    print(
+        f"Mean return in each episode is {np.mean(all_returns)}, with std of {np.std(all_returns)}"
+    )
+    print(
+        f"avergae number of step is {np.mean(all_steps)} with std of {np.std(all_steps)}"
+    )
 
 
 test_lander_env(n_episodes=100, max_steps=10000)

@@ -45,6 +45,11 @@ class LanderEnv(gym.Env):
             low=-np.inf, high=np.inf, shape=(9,), dtype=np.float32
         )
 
+        self.MARS_RADIUS = 3386000.0
+        # gravitational constant of mars
+        self.GRAVITY_CONSTANT = 6.673e-11
+        self.MARS_MASS = 6.42e23
+
     def step(self, action: np.float32):
         """
         Run one timestep of the environment's dynamics using the given action.
@@ -104,10 +109,8 @@ class LanderEnv(gym.Env):
 
         # define the reward
         reward = self.reward_function(
-            self.lander.is_landed(),
-            self.lander.is_crashed(),
-            complete_state[11],
-            complete_state[12],
+            position_array=complete_state[1:4],
+            velocity_array=complete_state[4:7],
         )
 
         # print("reward is ", reward, " altitude ", complete_state[11])
@@ -152,10 +155,10 @@ class LanderEnv(gym.Env):
         super().reset(seed=seed)
 
         # init_conditions
-        MARS_RADIUS = 3386000.0
+
         init_conditions = [
             0.0,  # x position
-            (MARS_RADIUS + 10000),  # y position
+            (self.MARS_RADIUS + 10000),  # y position
             0.0,  # z position
             0.0,  # x velocity
             0.0,  # y velocity
@@ -198,38 +201,37 @@ class LanderEnv(gym.Env):
         return np.array([throttle], dtype=np.float32)
 
     # custom reward function to try to get better learning!
-    def reward_function(self, landed, crashed, altitude, climb_speed):
+    def reward_function(self, position_array: np.ndarray, velocity_array: np.ndarray):
         """landed and crashed are bools, indicating whether the episode has termianted or not
         Note that if throttle is randomly generated
         uniform generation of throttling will end after 6850 steps
-        normal generation will end after 5750 steps"""
-        if landed and not crashed:
-            return 20000
-        elif crashed:
-            return -10000
+        normal generation will end after 5750 steps
 
-        # # not landed yet, neg reward at each step, if not itll take forever
-        # # print(climb_speed)
-        # # climb_speed somewhere between 0-100
-        # if altitude < 200:
-        #     # extremely high penalty for speed near mars
-        #     return -0.2 * (climb_speed**2)
-        # if altitude < 1000:
-        #     # extremely high penalty for speed near mars
-        #     return -0.1 * (climb_speed**2)
-        # if altitude < 2000:
-        #     # extremely high penalty for speed near mars
-        #     return -0.04 * (climb_speed**2)
-        # else:
-        #     return -0.02 * abs(climb_speed)
-        return -1.0
+        we want to minimize the total energy; thats what our system is doing!
+        we can maximize the energy of the total energy
+        but also making sure the mean reward in each episode is positive
+
+        currently, we dont have a constant that makes total energy at the surface zero"""
+        potential_energy = -(self.GRAVITY_CONSTANT * self.MARS_MASS) / np.linalg.norm(
+            position_array
+        )
+        # print("potential energy", potential_energy)
+        kinetic_energy = 0.5 * np.sum(velocity_array**2)
+        # print("kinetic energy", kinetic_energy)
+
+        # reward must be a float, and we w
+        reward = -(potential_energy + kinetic_energy).item()
+        # print("negative of total energy is", reward)
+        # some constant to ensure your average reward in each episode is positive, and closeish to zero
+        # this constant is the mean reward per episode!
+        constant = 12625000
+        return reward - constant
 
     def model_to_real(self, model):
         """transform on model action space to real action space
         model action space is symmetric and normalized for easier learning
         model is in -1 to 1 space
         real is 0 to 1 space"""
-        assert isinstance(model, np.ndarray)
         return 0.5 * model + 0.5
 
     def real_to_model(self, real):
