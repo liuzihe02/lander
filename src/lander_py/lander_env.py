@@ -1,5 +1,6 @@
 import gymnasium as gym
-import torch
+
+# import torch as t
 import numpy as np
 from typing import Any, Dict, Tuple, List
 import os
@@ -36,18 +37,15 @@ class LanderEnv(gym.Env):
         self.lander = lander_agent_cpp.PyAgent()
 
         # Define action and observation space
-        self.action_space = gym.spaces.Box(low=0, high=1, shape=(1,), dtype=np.float32)
-
-        # # try discrete space too
-        # self.action_space = gym.spaces.Discrete(10)  # 10 discrete levels
+        self.action_space = gym.spaces.Box(
+            low=-1.0, high=1.0, shape=(1,), dtype=np.float32
+        )
 
         self.observation_space = gym.spaces.Box(
             low=-np.inf, high=np.inf, shape=(9,), dtype=np.float32
         )
 
-    def step(
-        self, action: np.ndarray
-    ) -> Tuple[torch.Tensor, float, bool, bool, Dict[str, Any]]:
+    def step(self, action: np.float32):
         """
         Run one timestep of the environment's dynamics using the given action.
 
@@ -78,15 +76,15 @@ class LanderEnv(gym.Env):
         # # # print the action out of curiosity
         # print("Action chosen by model for next state", action)
 
-        # # map discrete levels to actual throttle values
-        # action = action / 9.0  # choices ranges from 0 till 9 inclusive
-
-        # use the actions
-        action_tuple = tuple(action.flatten())
-        self.lander.update(action_tuple)
+        # use the actions, but normalize them first
+        # for better learning, we use the range -1 to 1, that is normalized, symmetric, and has a range of 2!
+        # throttle is in the range 0 to 1
+        # action = 0.5 * action + 1
+        throttle_action = tuple(action.flatten())
+        self.lander.update(throttle_action)
 
         # Get state from C++ Agent and convert to PyTorch tensor
-        complete_state = np.array(self.lander.get_state())
+        complete_state = np.array(self.lander.get_state(), dtype=np.float32)
         # # NEXT STATE
         # print(
         #     "NEXT STATE ",
@@ -135,9 +133,10 @@ class LanderEnv(gym.Env):
             "ground_speed": complete_state[13],
         }
 
+        # observation here is a tensor
         return observation, reward, terminated, truncated, info
 
-    def reset(self, seed=None, options=None) -> Tuple[torch.Tensor, Dict[str, Any]]:
+    def reset(self, seed=None, options=None):
         """
         Reset the environment to an initial state.
 
@@ -169,9 +168,9 @@ class LanderEnv(gym.Env):
 
         # again only extract the relevant stuff
         # Get state from C++ Agent and convert to PyTorch tensor
-        complete_state = np.array(self.lander.reset(init_conditions))
+        complete_state = np.array(self.lander.reset(init_conditions), dtype=np.float32)
 
-        # position, velocity, altitude, and fuel, and climb speed
+        # position, velocity, altitude, and fuel remaining, and climb speed
         observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
         info = {}
 
@@ -204,24 +203,27 @@ class LanderEnv(gym.Env):
 
     # custom reward function to try to get better learning!
     def reward_function(self, landed, crashed, altitude, climb_speed):
-        "landed and crashed are bools"
+        """landed and crashed are bools, indicating whether the episode has termianted or not
+        Note that if throttle is randomly generated
+        uniform generation of throttling will end after 6850 steps
+        normal generation will end after 5750 steps"""
         if landed and not crashed:
-            return 100000
+            return 20000
         elif crashed:
             return -10000
 
-        # not landed yet, neg reward at each step, if not itll take forever
-        # print(climb_speed)
-        # climb_speed somewhere between 0-100
-        if altitude < 200:
-            # extremely high penalty for speed near mars
-            return -0.2 * (climb_speed**2)
-        if altitude < 1000:
-            # extremely high penalty for speed near mars
-            return -0.1 * (climb_speed**2)
-        if altitude < 2000:
-            # extremely high penalty for speed near mars
-            return -0.04 * (climb_speed**2)
-        else:
-            return -0.02 * abs(climb_speed)
-        # return -1.0
+        # # not landed yet, neg reward at each step, if not itll take forever
+        # # print(climb_speed)
+        # # climb_speed somewhere between 0-100
+        # if altitude < 200:
+        #     # extremely high penalty for speed near mars
+        #     return -0.2 * (climb_speed**2)
+        # if altitude < 1000:
+        #     # extremely high penalty for speed near mars
+        #     return -0.1 * (climb_speed**2)
+        # if altitude < 2000:
+        #     # extremely high penalty for speed near mars
+        #     return -0.04 * (climb_speed**2)
+        # else:
+        #     return -0.02 * abs(climb_speed)
+        return -1.0

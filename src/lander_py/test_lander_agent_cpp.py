@@ -9,7 +9,7 @@ os.chdir("../..")
 # Add the current directory to the Python path, so we can search here later
 sys.path.append(os.getcwd())
 # Now we can import the module
-import build.lander_agent_cpp as lander_agent_cpp
+import build.lander_agent_cpp as lander_agent_cpp  # noqa: E402
 
 print("check")
 # Create an instance of the Agent

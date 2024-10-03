@@ -1,10 +1,14 @@
-import torch
+# %%
+import torch as t
+import numpy as np
 from lander_env import (
     LanderEnv,
 )  # Assuming you've saved the LanderEnv class in a file named lander_env.py
+from stable_baselines3.common.env_checker import check_env
 
 
-def test_lander_env(n_episodes=5, max_steps=1000):
+# %%
+def test_lander_env(n_episodes=5, max_steps=10000):
     """
     Test the LanderEnv by running a few episodes with random actions.
 
@@ -14,37 +18,44 @@ def test_lander_env(n_episodes=5, max_steps=1000):
     """
     env = LanderEnv()
 
+    total_rewards = []
+
     for episode in range(n_episodes):
-        print(f"Episode {episode + 1}")
         observation, _ = env.reset()
         total_reward = 0
 
         for step in range(max_steps):
-            # Generate a random action
-            action = torch.rand(1, dtype=torch.float32)
+            # Generate a random action from normal or uniform distribution
+            action = np.array([-1.1])
 
             # Take a step in the environment
             next_observation, reward, terminated, truncated, _ = env.step(action)
 
             total_reward += reward
 
-            print(f"Step {step + 1}")
-            print(f"Action: {action.item():.4f}")
-            print(f"Observation: {next_observation}")
-            print(f"Reward: {reward:.4f}")
-            print(f"Terminated: {terminated}")
-            print(f"Truncated: {truncated}")
-            print("--------------------")
+            # print(f"Step {step + 1}")
+            # print(f"Action: {action.item():.4f}")
+            # print(f"Observation: {next_observation}")
+            # print(f"Reward: {reward:.4f}")
 
             if terminated or truncated:
+                # print(f"Terminated: {terminated}")
+                # print(f"Truncated: {truncated}")
                 break
-
-            observation = next_observation
 
         print(f"Episode {episode + 1} finished after {step + 1} steps")
         print(f"Total reward: {total_reward:.4f}")
-        print("====================\n")
+
+        total_rewards.append(total_reward)
+
+    print(f"mean return is{sum(total_rewards)/len(total_rewards)}")
 
 
-if __name__ == "__main__":
-    test_lander_env()
+test_lander_env(n_episodes=100, max_steps=10000)
+
+# %%
+env = LanderEnv()
+# It will check your custom environment and output additional warnings if needed
+check_env(env)
+
+# %% IMPLEMENT PROBES

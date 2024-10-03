@@ -24,6 +24,8 @@ def run_single_comparison_episode(model_path):
         "timesteps": [],
     }
 
+    # rl data
+
     for env_type, data in zip([False, True], [rl_data, classic_data]):
         env = LanderEnv()
         obs, _ = env.reset()
@@ -133,7 +135,7 @@ def plot_single_episode_comparison(rl_data, classic_data):
 
 # %%
 def main():
-    model_path = "./src/lander_py/ppo_augmented_reward_less_entropy"
+    model_path = "./src/lander_py/ppo_base_long_less_explore"
     rl_data, classic_data = run_single_comparison_episode(model_path)
     plot_single_episode_comparison(rl_data, classic_data)
 
