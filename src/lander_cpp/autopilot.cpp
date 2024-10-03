@@ -63,8 +63,6 @@ void autopilot_control(void)
     {
         throttle = 1;
     }
-
-    cout << "time" << simulation_time << "throttle" << throttle << endl;
 }
 
 void autopilot_agent(void)

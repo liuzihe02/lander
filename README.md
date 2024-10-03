@@ -133,3 +133,13 @@ Previously, the repo used a flag to selectively declare variables. All variables
 - added a `render` variable that allows me to run simulations without `GLUT`
     - currently, only `render=true, agent_flag=false` and `render=false,agent_flag=true` are supported
 
+## Changes tried
+
+- Making model (actor, critic smaller)
+- Changing reward function to be like energy
+- PPO Params
+    - Increasing entropy
+    - Batch size
+    - num epochs
+    - Learning rate
+- Normalizing action space

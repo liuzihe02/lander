@@ -87,25 +87,20 @@ class LanderEnv(gym.Env):
         # throttle is in the range 0 to 1
         real_action = self.model_to_real(action)
         throttle_action = tuple(real_action.flatten())
+        # print("throttle action is", throttle_action)
         self.lander.update(throttle_action)
 
         # Get state from C++ Agent and convert to PyTorch tensor
         complete_state = np.array(self.lander.get_state(), dtype=np.float32)
-        # # NEXT STATE
-        # print(
-        #     "NEXT STATE ",
-        #     " simul time: ",
-        #     obs_raw[0],
-        #     " fuel: ",
-        #     obs_raw[10],
-        #     " altitude: ",
-        #     obs_raw[11],
-        #     " climb speed: ",
-        #     obs_raw[12],
-        # )
 
         # POSITION AND VELOCITY, fuel, altitude, and climb speed
         observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
+
+        ################
+        # normalize the observation space somewhat!
+        ################
+        # first we make the position y less fucked up
+        observation[1] -= self.MARS_RADIUS
 
         # define the reward
         reward = self.reward_function(
@@ -181,7 +176,7 @@ class LanderEnv(gym.Env):
         return observation, info
 
     # be careful of this obs part
-    def classic_control_policy(self, position_array, velocity_array, altitude):
+    def landing_control_policy(self, position_array, velocity_array, altitude):
         # this observation is from our step method! not the complete 14-length state
         # already a numpy array
         # note that delta must be between 0 and 1!
@@ -199,6 +194,14 @@ class LanderEnv(gym.Env):
             throttle = 1
 
         return np.array([throttle], dtype=np.float32)
+
+    def hover_control_policy(self, position_array, velocity_array, altitude):
+        # random policies to test if my environment works
+        if altitude < 10000:
+            num = (10000 - altitude) / 10000
+        else:
+            num = 0
+        return np.array([num], dtype=np.float32)
 
     # custom reward function to try to get better learning!
     def reward_function(self, position_array: np.ndarray, velocity_array: np.ndarray):
@@ -224,8 +227,11 @@ class LanderEnv(gym.Env):
         # print("negative of total energy is", reward)
         # some constant to ensure your average reward in each episode is positive, and closeish to zero
         # this constant is the mean reward per episode!
-        constant = 12627000
-        return reward - constant
+        constant = 12629000
+
+        # return reward - constant
+        # play around with this
+        return kinetic_energy.item()
 
     def model_to_real(self, model):
         """transform on model action space to real action space
