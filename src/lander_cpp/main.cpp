@@ -8,8 +8,8 @@
 
 // declare core variables, that I change regularly
 // IVE ADDED THIS: whether or not to use GLUT to simulate or no picture
-bool render = false;
-bool agent_flag = true;
+bool render = true;
+bool agent_flag = false;
 
 int main(int argc, char *argv[])
 // Initializes GLUT windows and lander state, then enters GLUT main loop

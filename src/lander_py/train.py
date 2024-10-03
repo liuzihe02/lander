@@ -19,11 +19,11 @@ model = PPO(
     policy="MlpPolicy",
     env=env,
     n_steps=8000,  # number of timesteps per environment, before next update. a little more than the legnth of one episode
-    learning_rate=4e-4,  # increase lr a little
+    # learning_rate=4e-4,  # increase lr a little
     batch_size=1000,
     # n_epochs=10,
     # clip_range=0.3,  # allow bigger policy updates
-    ent_coef=0.01,  # more randomness, default is zero? highest for this is 0.05!
+    ent_coef=0.001,  # more randomness, default is zero? highest for this is 0.05!
     verbose=2,
     device="cuda" if torch.cuda.is_available() else "cpu",
 )
@@ -35,7 +35,7 @@ model = PPO(
 
 # Set up saving parameters
 save_freq = 64000  # Save every now and then
-all_timesteps = 64000
+all_timesteps = 1152000
 steps = 0
 for i in range(0, all_timesteps, save_freq):
     model.learn(total_timesteps=save_freq, reset_num_timesteps=False)
