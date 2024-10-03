@@ -97,10 +97,14 @@ class LanderEnv(gym.Env):
         observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
 
         ################
-        # normalize the observation space somewhat!
+        # normalize the observation space somewhat! we calculate the means and std for these across steps
         ################
-        # first we make the position y less fucked up
-        observation[1] -= self.MARS_RADIUS
+        # first we make the position y less screwed up
+        observation[1] -= 3.4e6
+        observation[1] /= 2.47e3
+        # make the altitude less extreme too
+        observation[7] -= 4.34e3
+        observation[7] /= 2.47e3
 
         # define the reward
         reward = self.reward_function(
