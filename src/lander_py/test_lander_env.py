@@ -33,8 +33,10 @@ def test_lander_env(n_episodes=5, max_steps=10000):
         step = 0
 
         for step in range(max_steps):
-            # Generate a random action from normal or uniform distribution
-            model_action = np.random.uniform(-1, 1, size=1)
+            # Generate a random action from uniform dist
+            # model_action = np.random.uniform(-1, 1, size=1)
+            # or you could generate from normal dist
+            model_action = np.random.normal(loc=0, scale=1, size=1)
 
             # Take a step in the environment
             next_observation, reward, terminated, truncated, _ = env.step(model_action)

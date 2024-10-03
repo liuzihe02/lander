@@ -224,7 +224,7 @@ class LanderEnv(gym.Env):
         # print("negative of total energy is", reward)
         # some constant to ensure your average reward in each episode is positive, and closeish to zero
         # this constant is the mean reward per episode!
-        constant = 12625000
+        constant = 12627000
         return reward - constant
 
     def model_to_real(self, model):
