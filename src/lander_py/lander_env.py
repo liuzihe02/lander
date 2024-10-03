@@ -50,10 +50,11 @@ class LanderEnv(gym.Env):
         Run one timestep of the environment's dynamics using the given action.
 
         Args:
-            action (torch.Tensor): The action to take in the environment.
+            action: The action to take in the environment.
+            THIS IS IN THE MODEL ACTION SPACE
 
         Returns:
-            observation (torch.Tensor): The observation of the environment after taking the action.
+            observation: The observation of the environment after taking the action.
             reward (float): The reward received for taking the action.
             terminated (bool): Whether the episode has terminated.
             truncated (bool): Whether the episode was truncated.
@@ -79,8 +80,8 @@ class LanderEnv(gym.Env):
         # use the actions, but normalize them first
         # for better learning, we use the range -1 to 1, that is normalized, symmetric, and has a range of 2!
         # throttle is in the range 0 to 1
-        # action = 0.5 * action + 1
-        throttle_action = tuple(action.flatten())
+        real_action = self.model_to_real(action)
+        throttle_action = tuple(real_action.flatten())
         self.lander.update(throttle_action)
 
         # Get state from C++ Agent and convert to PyTorch tensor
@@ -98,7 +99,7 @@ class LanderEnv(gym.Env):
         #     obs_raw[12],
         # )
 
-        # POSITION AND VELOCITY, altitude, and climb speed
+        # POSITION AND VELOCITY, fuel, altitude, and climb speed
         observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
 
         # define the reward
@@ -177,19 +178,14 @@ class LanderEnv(gym.Env):
         return observation, info
 
     # be careful of this obs part
-    def classic_control_policy(self, obs):
+    def classic_control_policy(self, position_array, velocity_array, altitude):
         # this observation is from our step method! not the complete 14-length state
         # already a numpy array
         # note that delta must be between 0 and 1!
         Kh, Kp, delta = 2e-2, 2.0, 0.5
 
-        pos = obs[0:3]
-        v = obs[3:6]
-        # becareful of how you arrange obs
-        altitude = obs[7]
-
-        e_r = pos / np.linalg.norm(pos)
-        e = -(0.5 + Kh * altitude + np.dot(v, e_r))
+        e_r = position_array / np.linalg.norm(position_array)
+        e = -(0.5 + Kh * altitude + np.dot(velocity_array, e_r))
         P_out = Kp * e
 
         if P_out <= -delta:
@@ -227,3 +223,17 @@ class LanderEnv(gym.Env):
         # else:
         #     return -0.02 * abs(climb_speed)
         return -1.0
+
+    def model_to_real(self, model):
+        """transform on model action space to real action space
+        model action space is symmetric and normalized for easier learning
+        model is in -1 to 1 space
+        real is 0 to 1 space"""
+        assert isinstance(model, np.ndarray)
+        return 0.5 * model + 0.5
+
+    def real_to_model(self, real):
+        """transform on real action space to model action space
+        model is in -1 to 1 space
+        real is 0 to 1 space"""
+        return 2 * real - 1

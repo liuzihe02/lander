@@ -75,6 +75,7 @@ void Agent::update(tuple<double> new_actions)
 vector<double> Agent::getState()
 {
     // Create a NEW vector and populate it with copies of the global variables
+    // order of return states
     std::vector<double> state = {
         ::simulation_time,
         ::position.x, ::position.y, ::position.z,

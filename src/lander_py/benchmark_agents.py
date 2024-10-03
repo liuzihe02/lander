@@ -9,6 +9,7 @@ from lander_env import LanderEnv
 def run_single_comparison_episode(model_path):
     model = PPO.load(model_path)
 
+    # rl data
     rl_data = {
         "altitudes": [],
         "descent_rates": [],
@@ -16,7 +17,8 @@ def run_single_comparison_episode(model_path):
         "throttles": [],
         "timesteps": [],
     }
-    classic_data = {
+    # classic data
+    cl_data = {
         "altitudes": [],
         "descent_rates": [],
         "fuel_levels": [],
@@ -25,32 +27,51 @@ def run_single_comparison_episode(model_path):
     }
 
     # rl data
+    rl_env = LanderEnv()
+    rl_obs, _ = rl_env.reset()
+    rl_done = False
+    rl_timestep = 0
 
-    for env_type, data in zip([False, True], [rl_data, classic_data]):
-        env = LanderEnv()
-        obs, _ = env.reset()
-        done = False
-        timestep = 0
+    while not rl_done:
+        # tuple's first action contains the ndarray!
+        model_action = model.predict(rl_obs, deterministic=True)[0]
 
-        while not done:
-            if env_type:  # Classic control
-                action = env.classic_control_policy(obs)
-            else:  # rl
-                action, _ = model.predict(obs, deterministic=True)
-                # print(action)
+        rl_obs, _, terminated, truncated, info = rl_env.step(model_action)
+        rl_done = terminated or truncated
 
-            obs, _, terminated, truncated, info = env.step(action)
-            done = terminated or truncated
+        rl_data["altitudes"].append(info["altitude"])
+        rl_data["descent_rates"].append(-info["climb_speed"])
+        rl_data["fuel_levels"].append(info["fuel"])
+        rl_data["throttles"].append(rl_env.model_to_real(model_action))
+        rl_data["timesteps"].append(rl_timestep)
 
-            data["altitudes"].append(info["altitude"])
-            data["descent_rates"].append(-info["climb_speed"])
-            data["fuel_levels"].append(info["fuel"])
-            data["throttles"].append(action[0].item())
-            data["timesteps"].append(timestep)
+        rl_timestep += 1
 
-            timestep += 1
+    # classic data
+    cl_env = LanderEnv()
+    cl_obs, _ = cl_env.reset()
+    cl_done = False
+    cl_timestep = 0
 
-    return rl_data, classic_data
+    while not cl_done:
+        real_action = cl_env.classic_control_policy(
+            position_array=cl_obs[0:3], velocity_array=cl_obs[3:6], altitude=cl_obs[7]
+        )
+
+        cl_obs, _, terminated, truncated, info = cl_env.step(
+            cl_env.real_to_model(real_action)
+        )
+        cl_done = terminated or truncated
+
+        cl_data["altitudes"].append(info["altitude"])
+        cl_data["descent_rates"].append(-info["climb_speed"])
+        cl_data["fuel_levels"].append(info["fuel"])
+        cl_data["throttles"].append(cl_env.model_to_real(real_action))
+        cl_data["timesteps"].append(cl_timestep)
+
+        cl_timestep += 1
+
+    return rl_data, cl_data
 
 
 # %%

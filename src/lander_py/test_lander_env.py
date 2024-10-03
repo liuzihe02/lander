@@ -26,10 +26,10 @@ def test_lander_env(n_episodes=5, max_steps=10000):
 
         for step in range(max_steps):
             # Generate a random action from normal or uniform distribution
-            action = np.array([-1.1])
+            model_action = np.array([1.1])
 
             # Take a step in the environment
-            next_observation, reward, terminated, truncated, _ = env.step(action)
+            next_observation, reward, terminated, truncated, _ = env.step(model_action)
 
             total_reward += reward
 
