@@ -146,11 +146,12 @@ Previously, the repo used a flag to selectively declare variables. All variables
 - Normalizing action space
 - Normalizing rewards to be positive
     - Agent can't cheat by trying to die as fast as possible
+- Discrete Action space instead of continuous?
 
 ### Normalization
 
-- Really crucial to normalize observations space, especially when observations have a large range
-    - the `gym` package's `NormalizeObservations` wrapper environment is key for this!
+- **Really** crucial to normalize observations space, especially when observations have a large range
+    - the `gym` package's `NormalizeObservations` wrapper environment is very convenient for this!
     - keeps a running mean of the observation, but note that the way it does this is by wrapping around the `step` function
     - this is why for plotting, you only plot stuff defined in the `step` function for info
         - important things like the un-normalized observations

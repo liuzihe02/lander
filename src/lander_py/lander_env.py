@@ -124,9 +124,13 @@ class LanderEnv(gym.Env):
         # model_observation = self.obs_space_real_to_model(real_observation)
 
         # define the reward
-        reward = self.energy_reward_function(
-            position_array=complete_state[1:4],
-            velocity_array=complete_state[4:7],
+        # reward = self.energy_reward_function(
+        #     position_array=complete_state[1:4],
+        #     velocity_array=complete_state[4:7],
+        # )
+
+        reward = self.sparse_reward_function(
+            landed=self.lander.is_landed(), crashed=self.lander.is_crashed()
         )
 
         # print("reward is ", reward, " altitude ", complete_state[11])
@@ -254,12 +258,12 @@ class LanderEnv(gym.Env):
         # return reward - constant
         return reward
 
-    # def sparse_reward_function(self, landed, crashed):
-    #     if landed:
-    #         return 10000
-    #     elif crashed:
-    #         return -10000
-    #     return -1
+    def sparse_reward_function(self, landed, crashed):
+        if landed:
+            return 10000
+        elif crashed:
+            return -10000
+        return -1
 
     def action_space_model_to_real(self, model):
         """transform on model action space to real action space
