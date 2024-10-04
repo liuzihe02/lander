@@ -133,13 +133,35 @@ Previously, the repo used a flag to selectively declare variables. All variables
 - added a `render` variable that allows me to run simulations without `GLUT`
     - currently, only `render=true, agent_flag=false` and `render=false,agent_flag=true` are supported
 
-## Changes tried
+## Tips and Tricks
 
 - Making model (actor, critic smaller)
 - Changing reward function to be like energy
+    - maybe try inverse of radius, and exponential of energy next?
 - PPO Params
     - Increasing entropy
     - Batch size
     - num epochs
     - Learning rate
 - Normalizing action space
+- Normalizing rewards to be positive
+    - Agent can't cheat by trying to die as fast as possible
+
+### Normalization
+
+- Really crucial to normalize observations space, especially when observations have a large range
+    - the `gym` package's `NormalizeObservations` wrapper environment is key for this!
+    - keeps a running mean of the observation, but note that the way it does this is by wrapping around the `step` function
+    - this is why for plotting, you only plot stuff defined in the `step` function for info
+        - important things like the un-normalized observations
+        - the stuff coming out of `step` should only be what the model sees
+
+- You can also normalize rewards using the `NormalizeReward` wrapper environment which keep the exponential moving average having a fixed variance
+    - this is extremely helpful as I don't need to manually set constants to change my reward
+
+- I also "normalized" the actions space by doing a linear transformation from the original action space of $throttle \in [0,1]$ to $[-1,1]$ so that the model can learn better
+
+- So currently, our base `LanderEnv` accepts transformed actions and outputs untransformed observations
+
+
+

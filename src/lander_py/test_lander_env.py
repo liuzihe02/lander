@@ -2,6 +2,7 @@
 import torch as t
 import numpy as np
 import gymnasium as gym
+from gymnasium.wrappers.normalize import NormalizeReward, NormalizeObservation
 from lander_env import (
     LanderEnv,
 )  # Assuming you've saved the LanderEnv class in a file named lander_env.py
@@ -23,7 +24,13 @@ def test_lander_env(n_episodes=5, max_steps=10000):
         n_episodes (int): Number of episodes to run.
         max_steps (int): Maximum number of steps per episode.
     """
+    # Create and wrap the environment using Monitor
     env = LanderEnv()
+    # we dont normalize observations here as we want to see them actually!
+    # env = NormalizeObservation(env)
+
+    # we always normalize reward as this is very helpful
+    env = NormalizeReward(env)
 
     # each element here is the return in each episode
     all_returns = []
@@ -53,7 +60,7 @@ def test_lander_env(n_episodes=5, max_steps=10000):
             # model_action = np.array([0])
 
             # Take a step in the environment
-            next_observation, reward, terminated, truncated, _ = env.step(model_action)
+            model_observation, reward, terminated, truncated, _ = env.step(model_action)
 
             if step % 50 == 0:
                 print(f"reward is{reward} at step {step}")
@@ -73,7 +80,7 @@ def test_lander_env(n_episodes=5, max_steps=10000):
             # append the reward after each step
             all_rewards_one_ep.append(reward)
             # add relevant info to all_obs_one_ep, as a numpy array. will normalize later
-            all_obs_one_ep.append(next_observation)
+            all_obs_one_ep.append(model_observation)
             step += 1
 
         # append the mean reward after each episode

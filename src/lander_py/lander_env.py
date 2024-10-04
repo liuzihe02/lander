@@ -50,6 +50,27 @@ class LanderEnv(gym.Env):
         self.GRAVITY_CONSTANT = 6.673e-11
         self.MARS_MASS = 6.42e23
 
+        # # this contains the mean of observations for each variable, empirically determinde!
+        # self.obs_means = np.array(
+        #     [
+        #         0.0,
+        #         3.39e06,
+        #         0.0,
+        #         0.0,
+        #         -1.73e01,
+        #         0.0e00,
+        #         3.46e-01,
+        #         5.82e03,
+        #         -1.73e01,
+        #     ],
+        #     dtype=np.float32,
+        # )
+        # # this also contains the std of observations for each variable, empircally determined
+        # self.obs_stds = np.array(
+        #     [0.0, 2.27e03, 0.0, 0.0, 2.99e01, 0.0, 3.32e-01, 2.27e03, 2.99e01],
+        #     dtype=np.float32,
+        # )
+
     def step(self, action: np.float32):
         """
         Run one timestep of the environment's dynamics using the given action.
@@ -85,7 +106,7 @@ class LanderEnv(gym.Env):
         # use the actions, but normalize them first
         # for better learning, we use the range -1 to 1, that is normalized, symmetric, and has a range of 2!
         # throttle is in the range 0 to 1
-        real_action = self.model_to_real(action)
+        real_action = self.action_space_model_to_real(action)
         throttle_action = tuple(real_action.flatten())
         # print("throttle action is", throttle_action)
         self.lander.update(throttle_action)
@@ -97,17 +118,13 @@ class LanderEnv(gym.Env):
         observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
 
         ################
-        # normalize the observation space somewhat! we calculate the means and std for these across steps
+        ### normalize the observation space somewhat! we calculate the means and std for these across steps
+        ### currently hard coded based on a bunch of simulations
         ################
-        # first we make the position y less screwed up
-        observation[1] -= 3.4e6
-        observation[1] /= 2.47e3
-        # make the altitude less extreme too
-        observation[7] -= 4.34e3
-        observation[7] /= 2.47e3
+        # model_observation = self.obs_space_real_to_model(real_observation)
 
         # define the reward
-        reward = self.reward_function(
+        reward = self.energy_reward_function(
             position_array=complete_state[1:4],
             velocity_array=complete_state[4:7],
         )
@@ -177,6 +194,8 @@ class LanderEnv(gym.Env):
         observation = complete_state[[1, 2, 3, 4, 5, 6, 10, 11, 12]]
         info = {}
 
+        # observation = self.obs_space_real_to_model(real_observation)
+
         return observation, info
 
     # be careful of this obs part
@@ -199,16 +218,18 @@ class LanderEnv(gym.Env):
 
         return np.array([throttle], dtype=np.float32)
 
-    def hover_control_policy(self, position_array, velocity_array, altitude):
-        # random policies to test if my environment works
-        if altitude < 10000:
-            num = (10000 - altitude) / 10000
-        else:
-            num = 0
-        return np.array([num], dtype=np.float32)
+    # def hover_control_policy(self, position_array, velocity_array, altitude):
+    #     # random policies to test if my environment works
+    #     if altitude < 10000:
+    #         num = (10000 - altitude) / 10000
+    #     else:
+    #         num = 0
+    #     return np.array([num], dtype=np.float32)
 
     # custom reward function to try to get better learning!
-    def reward_function(self, position_array: np.ndarray, velocity_array: np.ndarray):
+    def energy_reward_function(
+        self, position_array: np.ndarray, velocity_array: np.ndarray
+    ):
         """landed and crashed are bools, indicating whether the episode has termianted or not
         Note that if throttle is randomly generated
         uniform generation of throttling will end after 6850 steps
@@ -234,18 +255,58 @@ class LanderEnv(gym.Env):
         constant = 12629000
 
         # return reward - constant
-        # play around with this
-        return kinetic_energy.item()
+        return -kinetic_energy.item()
 
-    def model_to_real(self, model):
+    # def sparse_reward_function(self, landed, crashed):
+    #     if landed:
+    #         return 10000
+    #     elif crashed:
+    #         return -10000
+    #     return -1
+
+    def action_space_model_to_real(self, model):
         """transform on model action space to real action space
         model action space is symmetric and normalized for easier learning
         model is in -1 to 1 space
         real is 0 to 1 space"""
         return 0.5 * model + 0.5
 
-    def real_to_model(self, real):
+    def action_space_real_to_model(self, real):
         """transform on real action space to model action space
         model is in -1 to 1 space
         real is 0 to 1 space"""
         return 2 * real - 1
+
+    # def obs_space_real_to_model(self, obs):
+    #     """normalizates the observation space to roughly 0 mean and 1 std
+    #     does this by subtracting the mean and dividing by the std
+
+    #     Args:
+    #         obs (_type_): _description_
+
+    #     Returns:
+    #         _type_: _description_
+    #     """
+    #     assert obs.shape == (9,)
+    #     obs = obs.copy()
+    #     obs -= self.obs_means
+    #     obs /= self.obs_stds
+    #     return obs
+
+    # def obs_space_model_to_real(self, normalized_obs):
+    #     """Denormalizes the observation space from roughly 0 mean and 1 std back to the original scale.
+    #     Does this by multiplying by the std and adding the mean (inverse of the normalization process).
+
+    #     Args:
+    #         normalized_obs (numpy.ndarray or list): The normalized observation
+
+    #     Returns:
+    #         numpy.ndarray or list: The denormalized observation
+    #     """
+    #     # Create a copy to avoid modifying the input
+    #     obs = normalized_obs.copy()
+
+    #     obs *= self.obs_stds
+    #     obs += self.obs_means
+
+    #     return obs
