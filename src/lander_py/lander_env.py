@@ -250,12 +250,9 @@ class LanderEnv(gym.Env):
         # reward must be a float, and we w
         reward = -(potential_energy + kinetic_energy).item()
         # print("negative of total energy is", reward)
-        # some constant to ensure your average reward in each episode is positive, and closeish to zero
-        # this constant is the mean reward per episode!
-        constant = 12629000
 
         # return reward - constant
-        return -kinetic_energy.item()
+        return reward
 
     # def sparse_reward_function(self, landed, crashed):
     #     if landed:

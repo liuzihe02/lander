@@ -40,10 +40,10 @@ def run_single_comparison_episode(model_path):
     while not rl_done:
         # tuple's first action contains the ndarray!
         model_action = model.predict(rl_obs, deterministic=True)[0]
-        if rl_timestep % 100 == 0:
-            # print(
-            #     f"throttle action taken is {rl_env.action_space_model_to_real(model_action)}at step {rl_timestep}"
-            # )
+        # if rl_timestep % 100 == 0:
+        # print(
+        #     f"throttle action taken is {rl_env.action_space_model_to_real(model_action)}at step {rl_timestep}"
+        # )
 
         rl_obs, _, terminated, truncated, info = rl_env.step(model_action)
         rl_done = terminated or truncated
@@ -277,7 +277,7 @@ def run_multiple_comparison_episodes(model_path, n_episodes=10, max_steps=10000)
 
         # Classic Control
         cl_env = LanderEnv()
-        #dont need normalize obs as we want the raw obs
+        # dont need normalize obs as we want the raw obs
         cl_env = NormalizeReward(cl_env)
         cl_obs, _ = cl_env.reset()
         cl_total_reward = 0
