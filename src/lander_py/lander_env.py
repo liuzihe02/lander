@@ -124,14 +124,15 @@ class LanderEnv(gym.Env):
         # model_observation = self.obs_space_real_to_model(real_observation)
 
         # define the reward
-        # reward = self.energy_reward_function(
-        #     position_array=complete_state[1:4],
-        #     velocity_array=complete_state[4:7],
-        # )
-
-        reward = self.sparse_reward_function(
-            landed=self.lander.is_landed(), crashed=self.lander.is_crashed()
+        reward = self.energy_reward_function(
+            position_array=complete_state[1:4],
+            velocity_array=complete_state[4:7],
+            altitude=complete_state[11],
         )
+
+        # reward = self.sparse_reward_function(
+        #     landed=self.lander.is_landed(), crashed=self.lander.is_crashed()
+        # )
 
         # print("reward is ", reward, " altitude ", complete_state[11])
 
@@ -232,7 +233,10 @@ class LanderEnv(gym.Env):
 
     # custom reward function to try to get better learning!
     def energy_reward_function(
-        self, position_array: np.ndarray, velocity_array: np.ndarray
+        self,
+        position_array: np.ndarray,
+        velocity_array: np.ndarray,
+        altitude: np.ndarray,
     ):
         """landed and crashed are bools, indicating whether the episode has termianted or not
         Note that if throttle is randomly generated
@@ -252,18 +256,18 @@ class LanderEnv(gym.Env):
         # print("kinetic energy", kinetic_energy)
 
         # reward must be a float, and we w
-        reward = -(potential_energy + kinetic_energy).item()
+        reward = -(3.72 * altitude + kinetic_energy / altitude).item()
         # print("negative of total energy is", reward)
 
         # return reward - constant
         return reward
 
-    def sparse_reward_function(self, landed, crashed):
-        if landed:
-            return 10000
-        elif crashed:
-            return -10000
-        return -1
+    # def sparse_reward_function(self, landed, crashed):
+    #     if landed:
+    #         return 10000
+    #     elif crashed:
+    #         return -10000
+    #     return -1
 
     def action_space_model_to_real(self, model):
         """transform on model action space to real action space

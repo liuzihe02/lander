@@ -150,15 +150,16 @@ Previously, the repo used a flag to selectively declare variables. All variables
 
 ### Normalization
 
-- **Really** crucial to normalize observations space, especially when observations have a large range
+- Important to normalize observations space, especially when observations have a large range
     - the `gym` package's `NormalizeObservations` wrapper environment is very convenient for this!
     - keeps a running mean of the observation, but note that the way it does this is by wrapping around the `step` function
     - this is why for plotting, you only plot stuff defined in the `step` function for info
         - important things like the un-normalized observations
         - the stuff coming out of `step` should only be what the model sees
 
-- You can also normalize rewards using the `NormalizeReward` wrapper environment which keep the exponential moving average having a fixed variance
+- Really crucial to normalize rewards using the `NormalizeReward` wrapper environment which keep the exponential moving average having a fixed variance
     - this is extremely helpful as I don't need to manually set constants to change my reward
+    - If you don't normalize rewards and they are too big, somehow decreases with training instead?
 
 - I also "normalized" the actions space by doing a linear transformation from the original action space of $throttle \in [0,1]$ to $[-1,1]$ so that the model can learn better
 
