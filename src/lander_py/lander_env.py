@@ -254,9 +254,9 @@ class LanderEnv(gym.Env):
         # print("potential energy", potential_energy)
         kinetic_energy = 0.5 * np.sum(velocity_array**2)
         # print("kinetic energy", kinetic_energy)
-
+        reward = -(altitude**2 + 1.5 * kinetic_energy)
         # return reward - constant
-        return -(altitude**2 + 1.5 * kinetic_energy)
+        return reward
 
     # def sparse_reward_function(self, landed, crashed):
     #     if landed:
