@@ -242,7 +242,7 @@ def run_multiple_comparison_episodes(model_path, n_episodes=10, max_steps=10000)
 
 # %%
 def main():
-    model_path = "./src/lander_py/ppo_modenergy_16"
+    model_path = "./src/lander_py/models/ppo_sparse_16"
     rl_data, classic_data = run_single_comparison_episode(model_path)
     plot_single_episode_comparison(rl_data, classic_data)
     run_multiple_comparison_episodes(model_path, n_episodes=10)

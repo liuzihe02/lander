@@ -217,6 +217,28 @@ vector3d thrust_wrt_world(void)
         a.z = lagged_throttle * MAX_THRUST;
         // this updates m
         // so is orientation is used in calculating thrust direction!
+        /**
+         * Thrust magnitude calculation:
+
+The lagged_throttle value (between 0 and 1) is multiplied by MAX_THRUST to get the current thrust magnitude.
+
+
+Thrust direction calculation:
+
+If the lander has stabilized attitude and the stabilized_attitude_angle is 0:
+
+The thrust vector is aligned with the position vector (pointing away from the planet's center).
+b = lagged_throttle * MAX_THRUST * position.norm()
+
+
+Otherwise:
+
+A base thrust vector (a) is created with only a z-component: (0, 0, lagged_throttle * MAX_THRUST)
+This vector is then transformed using the lander's orientation (stored in the 'm' matrix).
+The resulting vector (b) represents the thrust in the world coordinate system.
+         *
+         *
+         */
         xyz_euler_to_matrix(orientation, m);
         b.x = m[0] * a.x + m[4] * a.y + m[8] * a.z;
         b.y = m[1] * a.x + m[5] * a.y + m[9] * a.z;

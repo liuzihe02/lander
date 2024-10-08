@@ -28,7 +28,7 @@ env = Monitor(env)
 
 
 # make the model much smaller, default is 64 to 64 for both actor and critic
-policy_kwargs = dict(net_arch=[16, 16])
+policy_kwargs = dict(net_arch=[8, 8])
 
 # Set up the model
 model = PPO(
@@ -39,7 +39,7 @@ model = PPO(
     batch_size=1000,
     n_epochs=10,
     # clip_range=0.3,  # allow bigger policy updates
-    ent_coef=0.03,  # more randomness, default is zero? highest for this is 0.05!
+    ent_coef=0.01,  # more randomness, default is zero? highest for this is 0.05!
     policy_kwargs=policy_kwargs,
     verbose=2,
     device="cuda" if torch.cuda.is_available() else "cpu",
@@ -53,11 +53,11 @@ model = PPO(
 
 # Set up saving parameters
 save_freq = 64000  # Save every now and then
-all_timesteps = 320000
+all_timesteps = 128000
 steps = 0
 for i in range(0, all_timesteps, save_freq):
     model.learn(total_timesteps=save_freq, reset_num_timesteps=False)
-    model.save("./src/lander_py/ppo_inversealtitude_16")
+    model.save("./src/lander_py/models/ppo_potentialonly")
     steps += save_freq
     print(f"Model saved at step {steps}")
 

@@ -13,19 +13,7 @@ If you'd also like to run the graphics engine, set `render=true` and `agent_flag
 
 ## Results
 
-The proportional control algorithim did much better than PPO, unfortunately due to the problem of sparse rewards the agent was unable to successfully get positive signal and learn how to land. While during training steps were taken to encourage exploration (like increasing the entropy coefficient, see Equation 9 of the original PPO paper, and decreasing the penalty on each time step), the model was still unable to learn the landing algorithim.
-
-Our observation (state) space consists of the velocity vector $V$, the position vector $R$, fuel left, altitude from Mars' surface $H$, and the climb speed $V*e_r$. (Note that the climb speed is a signed scalar, and the descent rate is the negative of the climb speed). Our action space consists of the throttle value  $\in [0,1]$. 
-
-Most of the time, PPO learnt a constant value somewhere in the range of $0.3-0.8$ and stuck to it throughout.
-
-<image src=base.png width=800>
-
-This is despite during training, verifying that PPO is sampling from the *entire action space*.
-
-### Reasoning
-
-I suspect the biggest 2 problems leading to this is the problem of sparse rewards and compute. This is the reward function:
+### Sparse Reward Function
 
 ```
 if landeded safely:
@@ -36,29 +24,59 @@ else:
     return -1.0
 ```
 
-As you can see, we only ever obtain rewards at the end of the episode, which makes getting signal to update the weights correctly extremely difficult. Using a simulation timestep $ \delta t$ of $0.1$, one episode takes on average $1000-4000$ timesteps hence $100-400$ seconds to complete. This means the agent has experienced on average thousands of interactions before it ever receives a signal. Hence, we need to do training for much longer in order to learn.
+
+The proportional control algorithim did much better than PPO, unfortunately due to the problem of sparse rewards the agent was unable to successfully get positive signal to decrease its velocity to below 0.5m/s. While during training steps were taken to encourage exploration (like increasing the entropy coefficient, see Equation 9 of the original PPO paper, and decreasing the penalty on each time step), the model was still unable to learn a good enough landing algorithim.
+
+Our observation (state) space consists of the velocity vector $V$, the position vector $R$, fuel left, altitude from Mars' surface $H$, and the climb speed $V*e_r$. (Note that the climb speed is a signed scalar, and the descent rate is the negative of the climb speed). Our action space consists of the throttle value  $\in [0,1]$. 
+
+<img src="images/sparse_16.png" width=700>
+
+
+We only ever obtain rewards at the end of the episode, which makes getting signal to update the weights correctly extremely difficult. Using a simulation timestep $ \delta t$ of $0.1$, one episode takes on average $5000-8000$ timesteps hence $500-800$ seconds to complete. This means the agent has experienced on average thousands of interactions before it ever receives a signal. Hence, we need to do training for much longer in order to learn.
 
 > We introduce a slight negative reward on every step to prevent the agent from being "lazy" and artifically prolonging the simulation
 
-To address this issue, I tried modifying the reward function to introduce varying rewards throughout the episode:
+### Kinetic Energy Reward Function
 
-```
-if landeded safely:
-    return 100.0
-else if crashed:
-    return -100.0
-else:
-    if altitude<1000:
-        return -climb_speed**2
-    return scale_factor * abs(climb_speed)
+Perhaps the landing problem is too complex, and we can start off with a simpler problem having a more robust reward function providing rewards throughout the episode. I tried setting the kinetic energy as the reward function (we add a negative sign as to minimize it):
+
+```python
+kinetic_energy = 0.5 * np.sum(velocity_array**2)
+return -kinetic_energy
 ```
 
-We can see regularly, the agent is penalised slightly (primarily to address the lazy issue) but also penalizing having too large of speeds.
+The model successfully learned how to hover, albeit in an extremely stochastic way.
 
-> We use absolute of the climb speed here to prevent the agent from cheating by going in the opposite direction (upwards) and obtaining positive reward this way
+<img src="images/hover.png" width=700>
 
-Further work is required for this environment, via better reward shaping or simply training for longer.
+We can see the altitude remaining more or less constant, with zero velocity before the fuel is used up, and throttling no longer works
 
+### Mechanical Energy Reward Function
+
+```python
+potential_energy = -(self.GRAVITY_CONSTANT * self.MARS_MASS) / np.linalg.norm(
+    position_array
+)
+kinetic_energy = 0.5 * np.sum(velocity_array**2)
+return -(potential_energy + kinetic_energy)
+```
+
+Inspired by the success of learning to hover, we try to set the sum of the potential energy and the kinetic energy as the reward function. After all, the minimum energy state is when the model successfully lands - at the surface with zero velocity. Despite nice theoretical properties, this reward function did not work in practice.
+
+<img src="images/energy_16.png" width=700>
+
+### Squared Altitude Reward Function
+
+After playing around with various forms of reward functions, the one that was closest to successfully landing is of this form:
+
+```python
+kinetic_energy = 0.5 * np.sum(velocity_array**2)
+return -(altitude**2 + 1.5 * kinetic_energy)
+```
+
+where the agent did learn to decrease it throttle upon approaching the surface, but not quite good enough to decrease its landing speed to below the required 0.5m/s.
+
+<img src="images/squarealtitude16_1.5KE.png" width=700>
 
 ## Repository structure
 
@@ -84,6 +102,7 @@ Further work is required for this environment, via better reward shaping or simp
 │   │   ├── test_lander_agent_cpp.py
 │   │   ├── test_lander_env.py
 │   │   └── train.py
+|   |   └── models/
 │   └── spring
 │       ├── assignment1.py
 │       ├── assignment3.cpp
@@ -97,7 +116,7 @@ Further work is required for this environment, via better reward shaping or simp
 
 > As basically all functions and variables are global, it's very difficult to containerize methods and integrate our `Agent` class seamlessly into the graphics engine. Major refactoring is needed to containerize `update_lander_state()`, `autopilot()`, `numerical_dynamics()`, `update_visualization()` by taking in our `Agent` class as a parameter, or accessing variables locally
 
-In `src/lander_py/`, this contains code to train and do evaluate our agents. `test_lander_agent_cpp` tests whether `pybind11` has successfully translated all our methods, while `test_lander_env` tests whether our `gymnasium` environment is working as intended.
+In `src/lander_py/`, this contains code to train and do evaluate our agents. `test_lander_agent_cpp` tests whether `pybind11` has successfully translated all our methods, while `test_lander_env` tests whether our `gymnasium` environment is working as intended. `models/` do contain the zip files for all our model weights.
 
 `spring/` contains some of the assignment code for simulating simple harmonic motion.
 
@@ -136,17 +155,15 @@ Previously, the repo used a flag to selectively declare variables. All variables
 ## Tips and Tricks
 
 - Making model (actor, critic smaller)
-- Changing reward function to be like energy
-    - maybe try inverse of radius, and exponential of energy next?
+- Changing reward function to be mechanical energy
 - PPO Params
     - Increasing entropy
     - Batch size
     - num epochs
     - Learning rate
-- Normalizing action space
-- Normalizing rewards to be positive
-    - Agent can't cheat by trying to die as fast as possible
 - Discrete Action space instead of continuous?
+- Often, training too long can decrease performance (mean reward decreases)
+- First make the landing condition easier (lower threshold for landing), then slowly decrease threshold
 
 ### Normalization
 
@@ -162,7 +179,6 @@ Previously, the repo used a flag to selectively declare variables. All variables
     - If you don't normalize rewards and they are too big, somehow decreases with training instead?
 
 - I also "normalized" the actions space by doing a linear transformation from the original action space of $throttle \in [0,1]$ to $[-1,1]$ so that the model can learn better
-
 - So currently, our base `LanderEnv` accepts transformed actions and outputs untransformed observations
 
 
